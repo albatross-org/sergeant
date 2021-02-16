@@ -1,0 +1,10 @@
+.option {
+    background: hsl(0, 0%, 96%);
+    transition: background 0.1s ease-in-out;
+    padding: 20px
+}
+
+.option:hover{
+    background: hsl(0, 0%, 92%);
+    cursor: pointer;
+}
