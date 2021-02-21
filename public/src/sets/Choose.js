@@ -1,14 +1,10 @@
 import React from "react"
-import { Section, Container, Heading, Box, Columns, Hero, Content } from 'react-bulma-components';
+import { Section, Container, Heading, Box, Columns, Hero, Content, Loader } from 'react-bulma-components';
 import { Link } from 'react-router-dom'
 
 import CalendarHeatmap from '../common/CalendarHeatmap'
 
 import "./Choose.css"
-
-import fakeSetData from "../fake_set_data.json"
-import fakeStatsData from "../fake_stats_data.json"
-
 
 class Choose extends React.Component {
     constructor(props) {
@@ -16,36 +12,48 @@ class Choose extends React.Component {
         let name = new URLSearchParams(this.props.location.search).get("setName")
         let data = {}
 
-        for (let set of fakeSetData) {
-            if (set.name == name) {
-                data = set
-            }
-        }
-
         this.state = {
             set: data,
+            loading: true,
         }
     }
-
+    
     componentDidUpdate() {
         let currentName = this.state.set.name
         let newName = new URLSearchParams(this.props.location.search).get("setName")
 
         if (currentName != newName) {
-            let data = {}
-
-            for (let set of fakeSetData) {
-                if (set.name == newName) {
-                    data = set
-                }
-            }
-
-            this.setState({set: data})
+            this.fetchSet()
         }
+    }
+
+    componentDidMount() {
+        this.fetchSet()
+    }
+
+    fetchSet() {
+        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/list`
+        let name = new URLSearchParams(this.props.location.search).get("setName")
+        console.log(`GET SETS ${url}`)
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                for (let set of data) {
+                    if (set.name == name) {
+                        this.setState({set: set, loading: false})
+                    }
+                }
+            })
     }
 
     render() {
         let year = new Date().getFullYear()
+
+        if (this.state.loading) {
+            return <Section>
+               <Loader></Loader> 
+            </Section>
+        }
 
         return <div>
             <Hero style={{ background: this.state.set.background }} color="primary">

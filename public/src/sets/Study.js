@@ -19,26 +19,19 @@ class Study extends React.Component {
         super(props)
 
         let params = new URLSearchParams(this.props.location.search)
-        let setName = params.get("setName")
+        // let setName = params.get("setName")
         let viewName = params.get("viewName")
 
-        let data = {}
-        for (let set of fakeSetData) {
-            if (set.name == setName) {
-                data = set
-            }
-        }
-
         this.state = {
-            set: data,
             view: viewName,
-
+            
             flipped: false,
-
+            
             card: null,
             cardTimeStart: new Date().getTime(),
-
+            
             totalTime: "0 minutes",
+            setLoading: true,
             loading: true,
 
             cardsAnswered: 0,
@@ -59,6 +52,7 @@ class Study extends React.Component {
         );
 
         document.addEventListener("keydown", e => { this.handleKeybind(e) })
+        this.fetchSet()
         this.fetchCard()
     }
 
@@ -138,19 +132,19 @@ class Study extends React.Component {
                 "duration": duration,
             })
         })
-        .then(response => {
-            if (response.status == 200) {
-                this.fetchCard()
-            } else {
-                console.log("Error PUT card: ", response)
-                this.setState({
-                    error: "Error updating card... are you sure the API is running correctly?"
-                })
-            }
-        })
-        .catch(err => {
-            this.setState({ error: "Error updating card: " + err })
-        })
+            .then(response => {
+                if (response.status == 200) {
+                    this.fetchCard()
+                } else {
+                    console.log("Error PUT card: ", response)
+                    this.setState({
+                        error: "Error updating card... are you sure the API is running correctly?"
+                    })
+                }
+            })
+            .catch(err => {
+                this.setState({ error: "Error updating card: " + err })
+            })
     }
 
     // tick updates the timer at the top of the page.
@@ -167,18 +161,28 @@ class Study extends React.Component {
     // fetchCard fetches and updates the card using an API call.
     fetchCard() {
         // TODO: Graceful API request here.
-        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/get?viewName=${this.state.view}&setName=${this.state.set.name}`
+        let params = new URLSearchParams(this.props.location.search)
+        let setName = params.get("setName")
+        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/get?viewName=${this.state.view}&setName=${setName}`
         console.log(`GET CARD ${url}`)
         fetch(url)
             .then(response => response.json())
             .then(data => {
                 console.log(data)
-                this.setState({
-                    flipped: false,
-                    loading: false,
-                    card: data,
-                    cardTimeStart: new Date().getTime(),
-                })
+
+                if (data.error) {
+                    this.setState({
+                        loading: false,
+                        error: data.error
+                    })
+                } else {
+                    this.setState({
+                        flipped: false,
+                        loading: false,
+                        card: data,
+                        cardTimeStart: new Date().getTime(),
+                    })
+                }
             })
             .catch(err => {
                 this.setState({
@@ -187,7 +191,30 @@ class Study extends React.Component {
             })
     }
 
+    // fetchSet fetches the information about the current set.
+    fetchSet() {
+        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/list`
+        let name = new URLSearchParams(this.props.location.search).get("setName")
+        console.log(`GET SETS ${url}`)
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                for (let set of data) {
+                    if (set.name == name) {
+                        this.setState({set: set, setLoading: false})
+                    }
+                }
+            })
+    }
+     
+
     render() {
+        if (this.state.setLoading) {
+            return <Section>
+                <Loader></Loader>
+            </Section>
+        }
+
         return (
             <Hero className="study" >
                 <Hero.Head className="study-box study-header" renderAs="div" style={{ background: this.state.set.background }}>
@@ -275,9 +302,9 @@ function Card(props) {
         );
     }
 
-    let breadcrumbItems = props.path.split("/").map(path => ({ name: path, url: path }));
-
     if (!props.error) {
+        let breadcrumbItems = props.path.split("/").map(path => ({ name: path, url: path }));
+        
         return (
             <Box className="card-box">
                 <Breadcrumb renderAs="a" hrefAttr="href" items={breadcrumbItems} />

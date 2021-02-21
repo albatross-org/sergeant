@@ -11,7 +11,7 @@ class SetLink extends React.Component {
     
     render() {
         return (
-                <Tilt className="Tilt" options={{ max: 10, scale: 1.02 }} style={{ height: "100%", cursor: "pointer" }} >
+                <Tilt className="Tilt" options={{ max: 10, scale: 1.02 }} style={{ cursor: "pointer" }} >
                     <Box style={this.props.style}>
                                 <Link to={{pathname: "/sets/choose", search: "?setName=" + this.props.name }} style={{display: "flex", height: "100%"}}>
                                 <Columns>

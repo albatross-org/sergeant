@@ -5,7 +5,7 @@ Sergeant is a tool for practicing the application of knowledge, as a supplement 
   - [Why](#why)
     - [Why Not Just Use Anki?](#why-not-just-use-anki)
     - [Why Not Just Use The Exercises In The Textbook?](#why-not-just-use-the-exercises-in-the-textbook)
-    - [My Previous Solution](#my-previous-solution)
+    - [Previous Solution](#previous-solution)
   - [Usage](#usage)
     - [Adding Questions](#adding-questions)
   - [Structure](#structure)
@@ -42,7 +42,7 @@ The questions come from the textbook anyway, the difference is just in the way t
 
 Moreover, it's more _fun_. As unbelievable as it sounds, writing a new piece of software means that you can get stuff like streaks and fun sound effects that release all that lovely dopamine when you get something right instead of the hassle of flicking to the back pages.
 
-#### My Previous Solution
+#### Previous Solution
 In order to get around this problem, I have previously made _a lot_ of small cards which tackle different parts of the general process around a particular type of question. These look something like this:
 
 ```
@@ -120,8 +120,14 @@ $ sergeant screenshot --help
 
 Here's an example of a question and answer pair, ready to be used by the program:
 
-![Question image.](media/question.png "Surely one won't hurt?")
-![Answer image.](media/answer.png "This image comes from a textbook.")
+![Question image](media/question.png "Surely one won't hurt?")
+![Answer image](media/answer.png "This image comes from a textbook.")
+
+If these images were in the home directory and were called `question.png` and `answer.png` respectively, the command to add them to the path `further-maths/core-pure-1/chapter-1-complex-numbers/ex1a` would be: 
+
+```sh
+$ sergeant add --path 'further-maths/core-pure-1/chapter-1-complex-numbers/ex1a' --question "question.png" --answer "answer.png"
+```
 
 Notice how it's not a seperate question-answer pair for parts `a`, `b`, `c` and `d` since it's difficult to remove the surrounding context.
 
@@ -159,20 +165,21 @@ Each card is an entry that looks like this:
 
 ```yaml
 ---
-name: "Question <random 16-character string>"
+title: "Question <random 16-character string>"
+date: "2021-02-19 12:32"
 type: "question"
 tags: ["@?any-tags"]
 completions:
     perfect:
-        - date: 2021-02-07T21:59:43.10-05:00
+        - date: 2021-02-16 10:18
           time: 7m10s
     minor:
-        - date: 2021-01-07T21:59:43.10-05:00
+        - date: 2021-02-16 10:18
           time: 5m51s
     major:
-        - date: 2020-01-07T21:59:43.10-05:00
+        - date: 2021-02-16 10:18
           time: 5m53s
-        - date: 2020-01-07T21:59:43.10-05:00
+        - date: 2021-02-16 10:18
           time: 5m53s
 ---
 

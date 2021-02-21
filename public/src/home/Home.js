@@ -82,7 +82,7 @@ class SetList extends React.Component {
     }
 
     render() {
-        let setBuckets = [[]]
+        let setBuckets = []
 
         if (!this.props.data) {
             return null
@@ -91,39 +91,38 @@ class SetList extends React.Component {
         for (let i = 0; i < this.props.data.length; i++) {
             let set = this.props.data[i]
             let link = (
-                <Columns.Column>
                     <SetLink
                         name={set.name}
                         key={set.name}
                         displayName={set.displayName}
                         description={set.description}
                         background={set.background}
-                        style={{ height: "100%" }}
+                        style={{
+                            "marginBottom": "1rem",
+                            "height": "100%",
+                        }}
                     />
-                </Columns.Column>
             )
-
-            if (setBuckets[setBuckets.length - 1].length === 4) {
+            
+            if (setBuckets.length !== 4) {
                 setBuckets.push([link])
             } else {
-                setBuckets[setBuckets.length - 1].push(link)
+                setBuckets[i % 4].push(link)
             }
         }
 
-        let lastIndex = setBuckets.length - 1
-        for (let i = 0; i <= 5 - (setBuckets[lastIndex].length); i++) {
-            setBuckets[lastIndex].push(
-                <Columns.Column></Columns.Column>
-            )
-        }
+        console.log(setBuckets)
 
-        return setBuckets.map(links => {
-            return (
-                <Columns>
-                    {links}
-                </Columns>
-            )
-        })
+
+        return <Columns>
+            {setBuckets.map(links => {
+                return (
+                    <Columns.Column>
+                        {links}
+                    </Columns.Column>
+                )
+            })}
+        </Columns>
     }
 }
 

@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/albatross-org/go-albatross/albatross"
+	"github.com/albatross-org/sergeant"
 	"github.com/albatross-org/sergeant/server"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -15,8 +18,43 @@ var rootCmd = &cobra.Command{
 	Long:  `Sergeant is a tool for practicing the application of knowledge, as a supplement to existing tools for practicing recall such as Anki or Mnemosyne.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		server.Run()
+
+		path, err := cmd.Flags().GetString("config")
+		if err != nil {
+			logrus.Fatal(err)
+		}
+
+		config, err := sergeant.LoadConfig(path)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+
+		fmt.Println(config.Store)
+
+		underlyingStore, err := albatross.FromConfig(config.Store)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+
+		store := sergeant.NewStore(underlyingStore, config)
+
+		set, warnings, err := store.Set("all")
+		if err != nil {
+			logrus.Fatal(err)
+		}
+
+		for path, warning := range warnings {
+			logrus.Warningf("Malformed card: %s -> %s", path, warning)
+		}
+
+		logrus.Infof("Loaded %d cards.", len(set.Cards))
+
+		server.Run(store)
 	},
+}
+
+func init() {
+	rootCmd.PersistentFlags().String("config", "", "sergeant config, defaults to ~/.config/sergeant/config.yaml")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -26,8 +64,4 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-}
-
-func init() {
-	// cobra.OnInitialize()
 }
