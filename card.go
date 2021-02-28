@@ -49,6 +49,11 @@ func (card *Card) AnswerImage() (string, error) {
 	return encodeAsDataURI(card.AnswerPath)
 }
 
+// TotalCompletions returns the total number of completions for this card.
+func (card *Card) TotalCompletions() int {
+	return len(card.CompletionsMajor) + len(card.CompletionsMinor) + len(card.CompletionsPerfect)
+}
+
 // Content returns how the card is represented as an entry. Think of it like the opposite of cardFromEntry.
 func (card *Card) Content() (string, error) {
 	type frontmatter struct {

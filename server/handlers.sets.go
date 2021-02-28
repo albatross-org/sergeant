@@ -9,10 +9,10 @@ import (
 )
 
 func handlerSetsGet(c *gin.Context) {
-	setName, exists := c.GetQuery("setName")
-	if !exists {
+	setConfig, err := setConfigFromRequest(c)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "please specify a setName query parameter",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -25,13 +25,6 @@ func handlerSetsGet(c *gin.Context) {
 		return
 	}
 
-	if store.Sets[setName].Name == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("the set %q doesn't exist", setName),
-		})
-		return
-	}
-
 	view := sergeant.DefaultViews[viewName]
 	if view == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -40,17 +33,17 @@ func handlerSetsGet(c *gin.Context) {
 		return
 	}
 
-	set, _, err := store.Set(setName)
+	set, _, err := store.SetFromConfig(setConfig)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("error loading set %q: %s", setName, err),
+			"error": fmt.Sprintf("error loading set %q: %s", setConfig.Name, err),
 		})
 		return
 	}
 
 	if len(set.Cards) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("there's no cards left in the %q set", setName),
+			"error": fmt.Sprintf("there's no cards left in the %q set", setConfig.Name),
 		})
 		return
 	}
@@ -79,16 +72,20 @@ func handlerSetsList(c *gin.Context) {
 }
 
 func handlerSetsStats(c *gin.Context) {
-	setName, exists := c.GetQuery("setName")
-	if !exists {
-		setName = "all"
-	}
-
-	set, _, err := store.Set(setName)
+	setConfig, err := setConfigFromRequest(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("error loading set %q: %s", setName, err),
+			"error": err.Error(),
 		})
+		return
+	}
+
+	set, _, err := store.SetFromConfig(setConfig)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("error loading set %q: %s", setConfig.Name, err),
+		})
+		return
 	}
 
 	c.JSON(http.StatusOK, getSetHeatmapJSON(set))

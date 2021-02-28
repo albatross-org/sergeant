@@ -1,5 +1,5 @@
 import React from 'react'
-import { Loader } from 'react-bulma-components'
+import { Loader, Box } from 'react-bulma-components'
 import { ResponsiveCalendar } from '@nivo/calendar'
 
 import fakeStatsData from "../fake_stats_data.json"
@@ -10,7 +10,19 @@ class CalendarHeatmap extends React.Component {
         super(props)
 
         this.query = props.query
-    
+        this.colors = [
+            "#d6e685",
+            "#bddb7a",
+            "#a4d06f",
+            "#8cc665",
+            "#74ba58",
+            "#5cae4c",
+            "#44a340",
+            "#378f36",
+            "#2a7b2c",
+            "#1e6823",
+        ]
+
         this.state = {
             data: null
         }
@@ -23,7 +35,7 @@ class CalendarHeatmap extends React.Component {
         fetch(url)
             .then(response => response.json())
             .then(data => {
-                this.setState({data: data})
+                this.setState({ data: data })
             })
     }
 
@@ -38,12 +50,19 @@ class CalendarHeatmap extends React.Component {
                 from={this.props.from}
                 to={this.props.to}
                 emptyColor="#eeeeee"
-                colors={this.props.colors}
+                colors={this.colors}
                 margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
                 yearSpacing={40}
                 monthBorderColor="#ffffff"
                 dayBorderWidth={2}
                 dayBorderColor="#ffffff"
+                tooltip={data => {
+                    if (!data.value) {
+                        return null
+                    } else {
+                        return <Tooltip duration={data.value} perfect={data.data.perfect} minor={data.data.minor} major={data.data.major}/>
+                    }
+                }}
                 legends={[
                     {
                         anchor: 'bottom-right',
@@ -58,11 +77,39 @@ class CalendarHeatmap extends React.Component {
                 ]}
             />
         } else {
-            return <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%"}}>
-                <Loader style={{height: 50, width: 50}} />
+            return <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
+                <Loader style={{ height: 50, width: 50 }} />
             </div>
         }
     }
+}
+
+function toDuration(totalSeconds) {
+    let hours = Math.floor(totalSeconds / 3600)
+    let minutes = Math.floor((totalSeconds - (hours * 3600)) / 60)
+    let seconds = totalSeconds - (hours * 3600) - (minutes * 60)
+
+    let hoursString = String(hours) // Padding hours looks strange.
+    let minutesString = String(minutes).padStart(2, '0')
+    let secondsString = String(seconds).padStart(2, '0')
+
+    if (hours > 0) {
+        return `${hoursString}h${minutesString}m${secondsString}s`
+    } else {
+        return `${minutesString}m${secondsString}s`
+    }
+}
+
+function Tooltip(props) {
+    let total = props.perfect + props.minor + props.major
+    let percentagePerfect = Math.round(props.perfect/total * 100)
+    let percentageMinor = Math.round(props.minor/total * 100)
+    let percentageMajor = Math.round(props.major/total * 100)
+    console.log(props.perfect, total)
+
+    return <Box>
+        <p><b>{total} cards</b> for <b>{toDuration(props.duration)}</b> getting <b>{percentagePerfect}% perfect</b></p>
+    </Box>
 }
 
 export default CalendarHeatmap;

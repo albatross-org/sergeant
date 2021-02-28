@@ -32,8 +32,11 @@ type ConfigSet struct {
 	Name        string `yaml:"name"`
 	Description string `yaml:"description"`
 
-	Paths []string `yaml:"paths"`
-	Tags  []string `yaml:"tags"`
+	PathsOr []string `yaml:"paths"`
+	TagsOr  []string `yaml:"tags"`
+
+	PathsAnd []string `yaml:"paths-and"`
+	TagsAnd  []string `yaml:"tags-and"`
 
 	BeforeDuration time.Duration
 	AfterDuration  time.Duration
@@ -48,12 +51,20 @@ type ConfigSet struct {
 func (set ConfigSet) AsFilter() Filter {
 	filters := []Filter{}
 
-	if len(set.Paths) > 0 {
-		filters = append(filters, FilterPaths(set.Paths...))
+	if len(set.PathsOr) > 0 {
+		filters = append(filters, FilterPaths(set.PathsOr...))
 	}
 
-	if len(set.Tags) > 0 {
-		filters = append(filters, FilterTags(set.Tags...))
+	if len(set.TagsOr) > 0 {
+		filters = append(filters, FilterTags(set.TagsOr...))
+	}
+
+	for _, pathAnd := range set.PathsAnd {
+		filters = append(filters, FilterPaths(pathAnd))
+	}
+
+	for _, tagsAnd := range set.TagsAnd {
+		filters = append(filters, FilterPaths(tagsAnd))
 	}
 
 	if set.BeforeDate != (time.Time{}) {
@@ -129,8 +140,10 @@ type rawConfigSetDef struct {
 	Name        string `yaml:"name"`
 	Description string `yaml:"description"`
 
-	Paths []string `yaml:"paths"`
-	Tags  []string `yaml:"tags"`
+	PathsOr  []string `yaml:"paths"`
+	TagsOr   []string `yaml:"tags"`
+	PathsAnd []string `yaml:"paths-and"`
+	TagsAnd  []string `yaml:"tags-and"`
 
 	BeforeDuration string `yaml:"before-duration"`
 	AfterDuration  string `yaml:"after-duration"`
@@ -147,8 +160,10 @@ func parseRawConfigSetDef(rawConfigSet rawConfigSetDef) (ConfigSet, error) {
 	var err error
 
 	set.Name = rawConfigSet.Name
-	set.Paths = rawConfigSet.Paths
-	set.Tags = rawConfigSet.Tags
+	set.PathsAnd = rawConfigSet.PathsAnd
+	set.PathsOr = rawConfigSet.PathsOr
+	set.TagsAnd = rawConfigSet.TagsAnd
+	set.TagsOr = rawConfigSet.TagsOr
 
 	set.Color = rawConfigSet.Color
 	set.Background = rawConfigSet.Background

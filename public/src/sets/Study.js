@@ -162,8 +162,8 @@ class Study extends React.Component {
     fetchCard() {
         // TODO: Graceful API request here.
         let params = new URLSearchParams(this.props.location.search)
-        let setName = params.get("setName")
-        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/get?viewName=${this.state.view}&setName=${setName}`
+
+        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/get?${String(params)}`
         console.log(`GET CARD ${url}`)
         fetch(url)
             .then(response => response.json())

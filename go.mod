@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/albatross-org/go-albatross v0.1.0
+	github.com/dghubble/trie v0.0.0-20201011220304-ed6d6b8add55
 	github.com/fatih/color v1.10.0
 	github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19
 	github.com/gin-gonic/gin v1.6.3

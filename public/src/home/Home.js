@@ -65,7 +65,7 @@ class SectionStats extends React.Component {
                 <Heading subtitle size={6}>Here's how your reviews have broken down over the last year:</Heading>
                 <Box style={{ height: "30vh" }}>
                     <CalendarHeatmap
-                        colors={['#D7816A', '#BD4F6C']}
+                        colors={['#D7816A', '#CE6F6B', '#C6166B', '#C2696C']}
                         from={`${year}-01-01`}
                         to={`${year}-12-31`}
                         query={`?setName=all`}

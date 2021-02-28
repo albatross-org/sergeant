@@ -26,17 +26,23 @@ func NewStore(store *albatross.Store, config Config) *Store {
 // It knows what cards you want in the set from the .Sets configuration.
 // It returns a Set, followed by a map of warnings (paths -> parse errors) and an overall error if there was one.
 func (store *Store) Set(name string) (*Set, map[string]error, error) {
+	if store.Sets[name].Name == "" {
+		return nil, nil, fmt.Errorf("set %q not found in config", name)
+	}
+
+	config := store.Sets[name]
+	return store.SetFromConfig(config)
+}
+
+// SetFromConfig returns the cards present in the set specified by the config.
+// It returns a Set, followed by a map of warnings (paths -> parse errors) and an overall error if there was one.
+func (store *Store) SetFromConfig(config ConfigSet) (*Set, map[string]error, error) {
 	collection, err := store.albatross.Collection()
 	if err != nil {
 		return nil, nil, fmt.Errorf("couldn't create set from collection: %w", err)
 	}
 
-	if store.Sets[name].Name == "" {
-		return nil, nil, fmt.Errorf("set %q not found in config", name)
-	}
-
-	filter := store.Sets[name].AsFilter()
-
+	filter := config.AsFilter()
 	slice := collection.List().Slice()
 
 	cards := []*Card{}
