@@ -7,7 +7,7 @@ import (
 func initRoutes() {
 	// Serve the web UI at the base path.
 	router.Use(
-		static.Serve("/", static.LocalFile("./build", true)),
+		static.Serve("/", static.LocalFile("./public/build", true)),
 	)
 
 	// Set up basic routes for the V1 api.
