@@ -1,0 +1,11 @@
+.set-list-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, 25%);
+}
+
+@media only screen and (max-width: 768px) {
+    .set-list-grid {
+        grid-template-columns: repeat(1, 100%);
+    }
+}

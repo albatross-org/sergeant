@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/gin-gonic/contrib/static"
+	"github.com/gin-gonic/gin"
 )
 
 func initRoutes() {
@@ -9,6 +10,10 @@ func initRoutes() {
 	router.Use(
 		static.Serve("/", static.LocalFile("./public/build", true)),
 	)
+
+	router.NoRoute(func(c *gin.Context) {
+		c.File("./public/build/index.html")
+	})
 
 	// Set up basic routes for the V1 api.
 	api := router.Group("/api/v1")

@@ -2,6 +2,7 @@
     width: 100%;
     display: flex !important;
     flex-direction: column;
+    height: 100%;
 }
 
 .card-container {
@@ -10,12 +11,12 @@
     justify-content: center;
     align-content: center;
     align-items: center;
+    height: 100%;
 }
 
 .card-img {
     object-fit: contain;
     height: 100%;
-    max-width: 150%;
 }
 
 
@@ -45,6 +46,7 @@
 
 .study-body {
     flex: 1;
+    height: 100%;
 }
 
 .study-footer {

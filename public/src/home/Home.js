@@ -1,17 +1,15 @@
 import React from 'react'
 import { Section, Container, Heading, Box, Columns, Tile, Content } from 'react-bulma-components';
 
-import fakeStatsData from '../fake_stats_data.json'
-import fakeSetData from '../fake_set_data.json'
-
 import SetLink from '../common/SetLink'
 import CalendarHeatmap from '../common/CalendarHeatmap'
+import "./Home.css"
 
 class Home extends React.Component {
     constructor(props) {
         super(props)
 
-        this.state = {sets: null}
+        this.state = { sets: null }
     }
 
     fetchSets() {
@@ -21,7 +19,7 @@ class Home extends React.Component {
         fetch(url)
             .then(response => response.json())
             .then(data => {
-                this.setState({sets: data})
+                this.setState({ sets: data })
             })
     }
 
@@ -91,38 +89,67 @@ class SetList extends React.Component {
         for (let i = 0; i < this.props.data.length; i++) {
             let set = this.props.data[i]
             let link = (
-                    <SetLink
-                        name={set.name}
-                        key={set.name}
-                        displayName={set.displayName}
-                        description={set.description}
-                        background={set.background}
-                        style={{
-                            "marginBottom": "1rem",
-                            "height": "100%",
-                        }}
-                    />
+                <SetLink
+                    name={set.name}
+                    key={set.name}
+                    displayName={set.displayName}
+                    description={set.description}
+                    background={set.background}
+                    style={{
+                        "marginBottom": "1rem",
+                        "height": "100%",
+                    }}
+                />
             )
-            
-            if (setBuckets.length !== 4) {
-                setBuckets.push([link])
+
+            if (setBuckets[Math.floor(i / 4)] == undefined) {
+                setBuckets[Math.floor(i / 4)] = [link]
             } else {
-                setBuckets[i % 4].push(link)
+                setBuckets[Math.floor(i / 4)].push(link)
+            }
+        }
+
+        let rotated = []
+
+        for (let i = 0; i < setBuckets.length; i++) {
+            let row = setBuckets[i]
+            console.log(row)
+            for (let j = 0; j < row.length; j++) {
+                if (rotated[j] == undefined) {
+                    rotated[j] = [row[j]]
+                } else {
+                    rotated[j].push(row[j])
+                }
             }
         }
 
         console.log(setBuckets)
 
-
-        return <Columns>
-            {setBuckets.map(links => {
-                return (
-                    <Columns.Column>
-                        {links}
-                    </Columns.Column>
-                )
+        return <div className="set-list-grid">
+            {this.props.data.map(set => {
+                return <SetLink
+                name={set.name}
+                key={set.name}
+                displayName={set.displayName}
+                description={set.description}
+                background={set.background}
+                style={{
+                    "marginBottom": "1rem",
+                    "height": "100%",
+                }}
+            />
             })}
-        </Columns>
+        </div>
+
+        //return <Columns>
+        //    {setBuckets.map(links => {
+        //        return (
+        //            <Columns.Column>
+        //                {links}
+        //            </Columns.Column>
+        //        )
+        //     })}
+        // </Columns>
     }
 }
 

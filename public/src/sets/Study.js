@@ -1,14 +1,8 @@
 import React from "react"
 import { Section, Container, Heading, Box, Columns, Hero, Button, Image, Breadcrumb, Level, Loader } from 'react-bulma-components';
-import { Link } from 'react-router-dom'
 
 import "./Study.css"
-import questionImg from "./question.png"
-import answerImg from "./answer.png"
 
-import fakeSetData from "../fake_set_data.json"
-import fakeCardData from "./fake_card_data.json"
-import Header from "../common/Header";
 import { SRLWrapper } from "simple-react-lightbox";
 import ReactTooltip from "react-tooltip";
 
@@ -168,8 +162,6 @@ class Study extends React.Component {
         fetch(url)
             .then(response => response.json())
             .then(data => {
-                console.log(data)
-
                 if (data.error) {
                     this.setState({
                         loading: false,

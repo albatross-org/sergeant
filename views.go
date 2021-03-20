@@ -191,8 +191,8 @@ func (view *Difficulties) Next(set *Set) *Card {
 	}
 
 	paths = paths[:amount]
-
 	logrus.Info("Top most difficult: ", paths)
+	shuffle(paths)
 
 	// Find the first non-empty set of cards with the lowest probability.
 	for _, path := range paths {
@@ -233,15 +233,16 @@ func adjustDifficultyProbability(generalProbability float64, sampleProbability f
 	return sampleProbability*sampleStrength + generalProbability*(1-sampleStrength)
 }
 
-// lightlyShuffle shuffles a list slightly. This is used so that the most difficult path won't be picked everytime, but the top
-// most difficult ones will be.
-func lightlyShuffle(vals []string) {
+func shuffle(slice []string) {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
-
-	// This could be translated as "go through the list, flip a biased coin. If it's heads, swap the next two numbers around."
-	for i := 1; i < len(vals); i++ {
-		if r.Float64() > 0.25 {
-			vals[i], vals[i-1] = vals[i-1], vals[i]
-		}
+	// We start at the end of the slice, inserting our random
+	// values one at a time.
+	for n := len(slice); n > 0; n-- {
+		randIndex := r.Intn(n)
+		// We swap the value at index n-1 and the random index
+		// to move our randomly chosen value to the end of the
+		// slice, and to move the value that was at n-1 into our
+		// unshuffled portion of the slice.
+		slice[n-1], slice[randIndex] = slice[randIndex], slice[n-1]
 	}
 }

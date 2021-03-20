@@ -2,8 +2,6 @@ import React from 'react'
 import { Loader, Box } from 'react-bulma-components'
 import { ResponsiveCalendar } from '@nivo/calendar'
 
-import fakeStatsData from "../fake_stats_data.json"
-
 // CalendarHeatmap is a calendar that shows a different colour depending on the value at a given day.
 class CalendarHeatmap extends React.Component {
     constructor(props) {
@@ -103,9 +101,6 @@ function toDuration(totalSeconds) {
 function Tooltip(props) {
     let total = props.perfect + props.minor + props.major
     let percentagePerfect = Math.round(props.perfect/total * 100)
-    let percentageMinor = Math.round(props.minor/total * 100)
-    let percentageMajor = Math.round(props.major/total * 100)
-    console.log(props.perfect, total)
 
     return <Box>
         <p><b>{total} cards</b> for <b>{toDuration(props.duration)}</b> getting <b>{percentagePerfect}% perfect</b></p>
