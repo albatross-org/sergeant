@@ -2,7 +2,6 @@
     width: 100%;
     display: flex !important;
     flex-direction: column;
-    height: 100%;
 }
 
 .card-container {
@@ -46,7 +45,6 @@
 
 .study-body {
     flex: 1;
-    height: 100%;
 }
 
 .study-footer {
