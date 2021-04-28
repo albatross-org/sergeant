@@ -9,6 +9,7 @@ require (
 	github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19
 	github.com/gin-gonic/gin v1.6.3
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/mroth/weightedrand v0.4.1
 	github.com/robotn/gohook v0.30.5
 	github.com/segmentio/fasthash v1.0.3
 	github.com/sirupsen/logrus v1.6.0

@@ -29,6 +29,7 @@ var rootCmd = &cobra.Command{
 			logrus.Fatal(err)
 		}
 
+		fmt.Println(config)
 		fmt.Println(config.Store)
 
 		underlyingStore, err := albatross.FromConfig(config.Store)

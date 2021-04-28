@@ -1,6 +1,7 @@
 package sergeant
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"path/filepath"
@@ -10,6 +11,8 @@ import (
 
 	"github.com/dghubble/trie"
 	"github.com/sirupsen/logrus"
+
+	wr "github.com/mroth/weightedrand"
 )
 
 // DefaultViews is a map containing the default Views used by the program.
@@ -174,6 +177,17 @@ func (view *Difficulties) Next(set *Set) *Card {
 
 	pathMap := map[string][]*Card{}
 
+	trie.Walk(func(child string, value interface{}) error {
+		parent := trie.Get(filepath.Dir(child))
+		if parent == nil {
+			return nil
+		}
+
+		// fmt.Printf("\"%s\" -- \"%s\" [label=\"%f\"]\n", parent.(*probabilityNode).Path, child, value.(*probabilityNode).Difficulty)
+
+		return nil
+	})
+
 	// Build up a map of paths to all the available cards that they contain.
 	// TODO: this is an expensive operation.
 	for _, path := range paths {
@@ -184,23 +198,32 @@ func (view *Difficulties) Next(set *Set) *Card {
 		}
 	}
 
-	// We want to pick from the top 20% of cards that are likely to be wrong.
-	amount := int(float64(len(paths)) * 0.2)
-	if amount == 0 {
-		amount = len(paths)
+	choices := []wr.Choice{}
+	for _, path := range paths {
+		weightInt := uint(trie.Get(path).(*probabilityNode).Difficulty * (10000000)) // Have to convert difficulty to uint.
+		choices = append(
+			choices,
+			wr.Choice{Item: path, Weight: weightInt},
+		)
 	}
 
-	paths = paths[:amount]
-	logrus.Info("Top most difficult: ", paths)
-	shuffle(paths)
+	chooser, err := wr.NewChooser(choices...)
+	if err != nil {
+		logrus.Error("Error choosing question: ", err)
+		return nil
+	}
 
-	// Find the first non-empty set of cards with the lowest probability.
-	for _, path := range paths {
-		length := len(pathMap[path])
+	length := 0
+	for length == 0 {
+		path := chooser.Pick().(string)
+		questions := pathMap[path]
+		length := len(questions)
 
-		if length > 0 {
-			return pathMap[path][view.rng.Intn(length)]
+		if length == 0 {
+			continue
 		}
+
+		return questions[rand.Intn(length)]
 	}
 
 	return nil
