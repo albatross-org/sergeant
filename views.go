@@ -1,7 +1,6 @@
 package sergeant
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 	"path/filepath"
