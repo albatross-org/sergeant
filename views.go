@@ -254,17 +254,3 @@ func adjustDifficultyProbability(generalProbability float64, sampleProbability f
 	sampleStrength := 1.0 / (1 + math.Exp(2-float64(sampleSize)/3)) // Moved sigmoid curve.
 	return sampleProbability*sampleStrength + generalProbability*(1-sampleStrength)
 }
-
-func shuffle(slice []string) {
-	r := rand.New(rand.NewSource(time.Now().Unix()))
-	// We start at the end of the slice, inserting our random
-	// values one at a time.
-	for n := len(slice); n > 0; n-- {
-		randIndex := r.Intn(n)
-		// We swap the value at index n-1 and the random index
-		// to move our randomly chosen value to the end of the
-		// slice, and to move the value that was at n-1 into our
-		// unshuffled portion of the slice.
-		slice[n-1], slice[randIndex] = slice[randIndex], slice[n-1]
-	}
-}

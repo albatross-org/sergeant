@@ -91,7 +91,7 @@ func FilterAfterDate(date time.Time) Filter {
 // only lets cards created more than 10 days ago be used.
 func FilterBeforeDuration(duration time.Duration) Filter {
 	return func(card *Card) bool {
-		return time.Now().Sub(card.Date) > duration
+		return time.Since(card.Date) > duration
 	}
 }
 
@@ -101,6 +101,6 @@ func FilterBeforeDuration(duration time.Duration) Filter {
 // only lets cards created less than 30 days ago be used.
 func FilterAfterDuration(duration time.Duration) Filter {
 	return func(card *Card) bool {
-		return time.Now().Sub(card.Date) > duration
+		return time.Since(card.Date) > duration
 	}
 }
