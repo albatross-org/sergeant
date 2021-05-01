@@ -72,8 +72,6 @@ func (store *Store) AddCompletion(path string, completionType string, completion
 		return err
 	}
 
-	fmt.Println(entry.Attachments)
-
 	card, err := cardFromEntry(entry)
 	if err != nil {
 		return err

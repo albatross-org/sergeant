@@ -48,6 +48,20 @@ func FilterPaths(paths ...string) Filter {
 	}
 }
 
+// FilterPathsExact returns a filter that only allows cards who's path is equal to one of the paths specified.
+// This is an OR operation -- if any of the paths given match the card, then the card is allowed.
+func FilterPathsExact(paths ...string) Filter {
+	return func(card *Card) bool {
+		for _, path := range paths {
+			if card.Path == path {
+				return true
+			}
+		}
+
+		return false
+	}
+}
+
 // FilterTags returns a filter that only allows cards who contain the given tags.
 // This is an AND operations -- all of the tags have to match for the card to be allowed.
 func FilterTags(tags ...string) Filter {
