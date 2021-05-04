@@ -109,6 +109,8 @@ func createCard(store *albatross.Store, path string, tags []string, questionPath
 	// We need to create a path that's unique to the card, such as "further-maths/core-pure-1/chapter-1-complex-numbers/question-0NiDQqGdzxTSipJa".
 	entryPath := filepath.Join(path, "question-"+card.ID)
 
+	fmt.Println(store.UsingGit())
+
 	err = store.Create(entryPath, content)
 	if err != nil {
 		return "", fmt.Errorf("couldn't create card entry: %s", err)

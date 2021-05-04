@@ -149,7 +149,7 @@ func (view *Difficulties) Next(set *Set) *Card {
 			// If we have a sample, we compute an adjusted difficulty probability that takes into account
 			// the overall probability of the underlying category.
 			sampleProbability = float64(node.Perfect) / float64(total)
-			node.Difficulty = adjustDifficultyProbability(generalProbability, sampleProbability, total)
+			node.Difficulty = math.Pow(adjustDifficultyProbability(generalProbability, sampleProbability, total), 2) // TODO, potentially don't square?
 		}
 
 		if lowest == nil || node.Difficulty < lowest.Difficulty {

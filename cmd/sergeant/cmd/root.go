@@ -18,7 +18,6 @@ var rootCmd = &cobra.Command{
 	Long:  `Sergeant is a tool for practicing the application of knowledge, as a supplement to existing tools for practicing recall such as Anki or Mnemosyne.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-
 		path, err := cmd.Flags().GetString("config")
 		if err != nil {
 			logrus.Fatal(err)
@@ -29,14 +28,12 @@ var rootCmd = &cobra.Command{
 			logrus.Fatal(err)
 		}
 
-		fmt.Println(config)
-		fmt.Println(config.Store)
-
 		underlyingStore, err := albatross.FromConfig(config.Store)
 		if err != nil {
 			logrus.Fatal(err)
 		}
 
+		fmt.Println(underlyingStore.UsingGit())
 		store := sergeant.NewStore(underlyingStore, config)
 
 		set, warnings, err := store.Set("all")

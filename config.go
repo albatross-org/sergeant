@@ -169,7 +169,7 @@ func parseRawConfigSetDef(rawConfigSet rawConfigSetDef) (ConfigSet, error) {
 	set.Background = rawConfigSet.Background
 
 	if rawConfigSet.Description == "" {
-		set.Description = fmt.Sprintf("This is a custom set.")
+		set.Description = "This is a custom set."
 	} else {
 		set.Description = rawConfigSet.Description
 	}
