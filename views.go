@@ -72,6 +72,12 @@ func (view *Unseen) Next(set *Set) *Card {
 	return candidates[view.rng.Intn(len(candidates))]
 }
 
+// EvaluationView is a View which assigns a numerical score to each node.
+type EvaluationView interface {
+	View
+	Evaluate(path string) (float64, error)
+}
+
 // Difficulties selects cards that it predicts you are most likely to get wrong.
 // This is done through a combination of the overall probability for a certain category (like "futher-maths/section-complex-numbers" for example)
 // and a specific probablility (like "further-maths/section-complex-numbers/chapter-2-argand-diagrams"). The "strength" of the sample size is
@@ -97,8 +103,8 @@ func NewViewDifficulties(seed int64) *Difficulties {
 	}
 }
 
-// probabilityNode represents a node in the probability tree.
-type probabilityNode struct {
+// ProbabilityNode represents a node in the probability tree.
+type ProbabilityNode struct {
 	Path       string
 	Perfect    int
 	Minor      int
@@ -106,28 +112,28 @@ type probabilityNode struct {
 	Difficulty float64
 }
 
-// Next looks at all previous cards and decides what card to show next.
-func (view *Difficulties) Next(set *Set) *Card {
-	trie := trie.NewPathTrie()
+// BuildTrie creates a path trie that contains difficulty information.
+// A trie is a "prefix tree", where each all elements that share a common prefix are grouped under the same parent.
+// This uses a question's path to create a hierarchy of all the possible questions.
+// It will also return a sorted slice of all paths present.
+func (view *Difficulties) BuildTrie(set *Set) (pathTrie *trie.PathTrie, paths []string) {
+	pathTrie = trie.NewPathTrie()
 
 	// Create a trie based on all the different paths for the cards.
 	// We store a probabilityNode at each one which holds information about the success rates for each path.
 	for _, card := range set.Cards {
 		components := strings.Split(card.PathParent(), "/")
 		for i := 1; i < len(components); i++ {
-			putOrUpdateTrie(trie, strings.Join(components[:i], "/"), card)
+			putOrUpdateTrie(pathTrie, strings.Join(components[:i], "/"), card)
 		}
 
 	}
 
-	var lowest *probabilityNode
-	var paths []string
-
 	// Here we walk the tree in a breadth-first fashion. The idea here is to adjust the difficulty probabilities according
 	// to more general samples from broader categories.
 	// More information here: https://www.desmos.com/calculator/fouzmkkbo8
-	trie.Walk(func(key string, value interface{}) error {
-		node := value.(*probabilityNode)
+	pathTrie.Walk(func(key string, value interface{}) error {
+		node := value.(*ProbabilityNode)
 
 		var generalProbability float64
 		var sampleProbability float64
@@ -135,8 +141,8 @@ func (view *Difficulties) Next(set *Set) *Card {
 		if strings.Count(key, "/") == 0 {
 			generalProbability = view.baseProbability
 		} else {
-			parent := trie.Get(filepath.Dir(key))
-			generalProbability = parent.(*probabilityNode).Difficulty
+			parent := pathTrie.Get(filepath.Dir(key))
+			generalProbability = parent.(*ProbabilityNode).Difficulty
 		}
 
 		total := node.Perfect + node.Minor + node.Major
@@ -152,40 +158,32 @@ func (view *Difficulties) Next(set *Set) *Card {
 			node.Difficulty = math.Pow(adjustDifficultyProbability(generalProbability, sampleProbability, total), 2) // TODO, potentially don't square?
 		}
 
-		if lowest == nil || node.Difficulty < lowest.Difficulty {
-			lowest = node
-		}
-
 		paths = append(paths, key)
 
 		return nil
 	})
 
-	if len(paths) == 0 {
-		return nil
-	}
-
 	// Sort the available paths by their difficulty in the probability trie.
 	// This means that the most difficult cards (those with the lowest probability) will come first.
 	sort.Slice(paths, func(i, j int) bool {
-		p1 := trie.Get(paths[i]).(*probabilityNode).Difficulty
-		p2 := trie.Get(paths[j]).(*probabilityNode).Difficulty
+		p1 := pathTrie.Get(paths[i]).(*ProbabilityNode).Difficulty
+		p2 := pathTrie.Get(paths[j]).(*ProbabilityNode).Difficulty
 
 		return p1 < p2
 	})
 
-	pathMap := map[string][]*Card{}
+	return pathTrie, paths
+}
 
-	trie.Walk(func(child string, value interface{}) error {
-		parent := trie.Get(filepath.Dir(child))
-		if parent == nil {
-			return nil
-		}
+// Next looks at all previous cards and decides what card to show next.
+func (view *Difficulties) Next(set *Set) *Card {
+	pathTrie, paths := view.BuildTrie(set)
 
-		// fmt.Printf("\"%s\" -- \"%s\" [label=\"%f\"]\n", parent.(*probabilityNode).Path, child, value.(*probabilityNode).Difficulty)
-
+	if len(paths) == 0 {
 		return nil
-	})
+	}
+
+	pathMap := map[string][]*Card{}
 
 	// Build up a map of paths to all the available cards that they contain.
 	// TODO: this is an expensive operation.
@@ -199,7 +197,7 @@ func (view *Difficulties) Next(set *Set) *Card {
 
 	choices := []wr.Choice{}
 	for _, path := range paths {
-		weightInt := uint(trie.Get(path).(*probabilityNode).Difficulty * (10000000)) // Have to convert difficulty to uint.
+		weightInt := uint(pathTrie.Get(path).(*ProbabilityNode).Difficulty * (10000000)) // Have to convert difficulty to uint.
 		choices = append(
 			choices,
 			wr.Choice{Item: path, Weight: weightInt},
@@ -231,13 +229,13 @@ func (view *Difficulties) Next(set *Set) *Card {
 // putOrUpdateTrie will put a trie value or update it if it already exists for this path.
 func putOrUpdateTrie(trie *trie.PathTrie, path string, card *Card) {
 	if existing := trie.Get(path); existing != nil {
-		existing := existing.(*probabilityNode)
+		existing := existing.(*ProbabilityNode)
 		existing.Perfect += len(card.CompletionsPerfect)
 		existing.Minor += len(card.CompletionsMinor)
 		existing.Major += len(card.CompletionsMajor)
 		trie.Put(path, existing)
 	} else {
-		trie.Put(path, &probabilityNode{
+		trie.Put(path, &ProbabilityNode{
 			Path:    path,
 			Perfect: len(card.CompletionsPerfect),
 			Minor:   len(card.CompletionsMinor),
