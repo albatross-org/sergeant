@@ -92,6 +92,12 @@ type Difficulties struct {
 	// assumedSampleProbability is the probability used when no sample has been given.
 	// By default, this is 0.6. This means that categories which haven't been questioned about will be explored.
 	assumedSampleProbability float64
+
+	// topPercent is the proportion of cards (out of 1) that are selected to be part of cards chosen.
+	topPercent float64
+
+	// power is what the numerical difficulties are raised to. A higher value means that lower difficulties are exagerrated.
+	power float64
 }
 
 // NewViewDifficulties returns a new Difficulties view with the given seed.
@@ -100,6 +106,8 @@ func NewViewDifficulties(seed int64) *Difficulties {
 		rng:                      rand.New(rand.NewSource(seed)),
 		baseProbability:          0.5,
 		assumedSampleProbability: 0.5,
+		topPercent:               1,
+		power:                    1,
 	}
 }
 
@@ -155,7 +163,7 @@ func (view *Difficulties) BuildTrie(set *Set) (pathTrie *trie.PathTrie, paths []
 			// If we have a sample, we compute an adjusted difficulty probability that takes into account
 			// the overall probability of the underlying category.
 			sampleProbability = float64(node.Perfect) / float64(total)
-			node.Difficulty = math.Pow(adjustDifficultyProbability(generalProbability, sampleProbability, total), 2) // TODO, potentially don't square?
+			node.Difficulty = adjustDifficultyProbability(generalProbability, sampleProbability, total)
 		}
 
 		paths = append(paths, key)
@@ -166,8 +174,8 @@ func (view *Difficulties) BuildTrie(set *Set) (pathTrie *trie.PathTrie, paths []
 	// Sort the available paths by their difficulty in the probability trie.
 	// This means that the most difficult cards (those with the lowest probability) will come first.
 	sort.Slice(paths, func(i, j int) bool {
-		p1 := pathTrie.Get(paths[i]).(*ProbabilityNode).Difficulty
-		p2 := pathTrie.Get(paths[j]).(*ProbabilityNode).Difficulty
+		p1 := math.Pow(pathTrie.Get(paths[i]).(*ProbabilityNode).Difficulty, view.power)
+		p2 := math.Pow(pathTrie.Get(paths[j]).(*ProbabilityNode).Difficulty, view.power)
 
 		return p1 < p2
 	})
@@ -195,8 +203,10 @@ func (view *Difficulties) Next(set *Set) *Card {
 		}
 	}
 
+	pathsSubset := paths[:int(math.Ceil(float64(len(paths))*view.topPercent))]
+
 	choices := []wr.Choice{}
-	for _, path := range paths {
+	for _, path := range pathsSubset {
 		weightInt := uint(pathTrie.Get(path).(*ProbabilityNode).Difficulty * (10000000)) // Have to convert difficulty to uint.
 		choices = append(
 			choices,
