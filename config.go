@@ -131,7 +131,38 @@ func LoadConfig(path string) (Config, error) {
 	config.Sets["all"] = DefaultSetAll
 	config.Store = rawConfig.Store
 
+	setStoreDefaults(config.Store)
+
 	return config, nil
+}
+
+// setStoreDefaults sets the default options for a config.Store.
+func setStoreDefaults(c *albatross.Config) {
+	if c.DateFormat == "" {
+		c.DateFormat = albatross.DefaultConfig.DateFormat
+	}
+
+	if c.TagPrefix == "" {
+		c.TagPrefix = albatross.DefaultConfig.TagPrefix
+	}
+
+	// TODO: need to flip this around to c.DisableGit because it's impossible to distinguish between c.UseGit being uninitialised or
+	// purposefully being set to false.
+	if !c.UseGit {
+		c.UseGit = true
+	}
+
+	if c.Encryption == nil {
+		c.Encryption = &albatross.EncryptionConfig{}
+	}
+
+	if c.Encryption.PublicKey == "" {
+		c.Encryption.PublicKey = albatross.DefaultConfig.Encryption.PublicKey
+	}
+
+	if c.Encryption.PrivateKey == "" {
+		c.Encryption.PrivateKey = albatross.DefaultConfig.Encryption.PrivateKey
+	}
 }
 
 // rawConfigSetDef is a definition of a set before additional processing is done on it.
