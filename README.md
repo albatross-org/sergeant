@@ -1,12 +1,9 @@
 ## Sergeant
 Sergeant is a tool for practicing the application of knowledge, as a supplement to existing tools for practicing recall such as Anki or Mnemosyne.
 
----
-> __NOTICE__: This is very much a work in progress. This won't work out of the box at all.
----
+> __Notice__: This is very much a work in progress. This won't work out of the box at all.
 
 - [Sergeant](#sergeant)
-- [> __NOTICE__: This is very much a work in progress. This won't work out of the box at all.](#-notice-this-is-very-much-a-work-in-progress-this-wont-work-out-of-the-box-at-all)
   - [Why](#why)
     - [Why Not Just Use Anki?](#why-not-just-use-anki)
     - [Why Not Just Use The Exercises In The Textbook?](#why-not-just-use-the-exercises-in-the-textbook)
