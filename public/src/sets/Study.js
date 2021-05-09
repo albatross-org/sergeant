@@ -3,7 +3,6 @@ import { Section, Container, Heading, Box, Columns, Hero, Button, Image, Breadcr
 
 import "./Study.css"
 
-import { SRLWrapper } from "simple-react-lightbox";
 import ReactTooltip from "react-tooltip";
 
 const style = { textAlign: 'center', color: "white" };
@@ -301,16 +300,16 @@ function Card(props) {
             <Box className="card-box">
                 <Breadcrumb renderAs="a" hrefAttr="href" items={breadcrumbItems} />
                 <Container className="card-container">
-                    <SRLWrapper>
-                        <img
-                            className="card-img"
-                            src={props.questionImg}
-                            hidden={props.flipped} />
-                        <img
-                            className="card-img"
-                            src={props.answerImg}
-                            hidden={!props.flipped} />
-                    </SRLWrapper>
+                    <img
+                        className="card-img"
+                        src={props.questionImg}
+                        hidden={props.flipped}
+                    />
+                    <img
+                        className="card-img"
+                        src={props.answerImg}
+                        hidden={!props.flipped}
+                    />
                 </Container>
             </Box>
         );
