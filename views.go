@@ -106,8 +106,8 @@ func NewViewDifficulties(seed int64) *Difficulties {
 		rng:                      rand.New(rand.NewSource(seed)),
 		baseProbability:          0.5,
 		assumedSampleProbability: 0.5,
-		topPercent:               1,
-		power:                    1,
+		topPercent:               0.4,
+		power:                    2,
 	}
 }
 
