@@ -15,6 +15,8 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
+	golang.org/x/exp v0.0.0-20191030013958-a1ab85dbe136
+	gonum.org/v1/gonum v0.9.1
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 )
 

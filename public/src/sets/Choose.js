@@ -93,6 +93,11 @@ class Choose extends React.Component {
                             description="Shows cards predicted you'll most likely get wrong."
                             name={this.state.set.name}
                         />
+                        <Option
+                            viewName="Bayesian"
+                            description="Uses Bayesian inference to pick optimal cards."
+                            name={this.state.set.name}
+                        />
                     </Box>
                 </Container>
             </Section>

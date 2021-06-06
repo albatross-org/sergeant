@@ -10,6 +10,8 @@ import (
 
 	"github.com/dghubble/trie"
 	"github.com/sirupsen/logrus"
+	exprand "golang.org/x/exp/rand"
+	"gonum.org/v1/gonum/stat/distuv"
 
 	wr "github.com/mroth/weightedrand"
 )
@@ -19,6 +21,7 @@ var DefaultViews = map[string]View{
 	"random":       NewViewRandom(time.Now().Unix()),
 	"unseen":       NewViewUnseen(time.Now().Unix()),
 	"difficulties": NewViewDifficulties(time.Now().Unix()),
+	"bayesian":     NewViewBayesian(time.Now().Unix()),
 }
 
 // View is a certain way of scheduling cards.
@@ -230,7 +233,7 @@ func (view *Difficulties) Next(set *Set) *Card {
 			continue
 		}
 
-		return questions[rand.Intn(length)]
+		return questions[view.rng.Intn(length)]
 	}
 
 	return nil
@@ -261,4 +264,86 @@ func putOrUpdateTrie(trie *trie.PathTrie, path string, card *Card) {
 func adjustDifficultyProbability(generalProbability float64, sampleProbability float64, sampleSize int) float64 {
 	sampleStrength := 1.0 / (1 + math.Exp(2-float64(sampleSize)/3)) // Moved sigmoid curve.
 	return sampleProbability*sampleStrength + generalProbability*(1-sampleStrength)
+}
+
+// Bayesian uses Bayesian inference in order to try and select the card you're most likely to get wrong.
+// The method comes from Probabilistic Programming and Bayesian Methods for Hackers:
+//   https://nbviewer.jupyter.org/github/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/blob/master/Chapter6_Priorities/Ch6_Priors_PyMC2.ipynb
+// The basic idea is to turn the card picking problem into a multi-armed bandit problem. Each path then becomes a "bandit" and has an associated
+// probability distribution based on the questions answered correctly and the questions answered incorrectly.
+type Bayesian struct {
+	rng *rand.Rand
+}
+
+// bayesianBetaDistribution represents the beta distribution associated with one particular path. Basically, this is just a named beta distribution.
+type bayesianBetaDistribution struct {
+	Alpha int
+	Beta  int
+
+	Path string
+}
+
+// Next looks at all previous cards and decides what card to show next.
+func (view *Bayesian) Next(set *Set) *Card {
+	pathTrie := trie.NewPathTrie()
+
+	// Create a trie based on all the different paths for the cards.
+	// We store a probabilityNode at each one which holds information about the success rates for each path.
+	for _, card := range set.Cards {
+		components := strings.Split(card.PathParent(), "/")
+		for i := 1; i < len(components); i++ {
+			putOrUpdateTrie(pathTrie, strings.Join(components[:i], "/"), card)
+		}
+
+	}
+
+	priors := []bayesianBetaDistribution{}
+
+	// Here we walk the tree in a breadth-first fashion and create a beta distribution for each one.
+	pathTrie.Walk(func(key string, value interface{}) error {
+		node := value.(*ProbabilityNode)
+
+		priors = append(priors, bayesianBetaDistribution{
+			Alpha: 1 + node.Perfect,
+			Beta:  1 + node.Major + node.Minor,
+			Path:  key,
+		})
+
+		return nil
+	})
+
+	pathMap := map[string][]*Card{}
+	questions := []*Card{}
+
+	for len(questions) == 0 {
+		var smallestSample float64 = math.Inf(1)
+		var smallestPath string
+
+		for _, prior := range priors {
+			dist := distuv.Beta{Alpha: float64(prior.Alpha), Beta: float64(prior.Beta), Src: exprand.NewSource(view.rng.Uint64())}
+			sample := dist.Rand()
+
+			if sample < smallestSample {
+				smallestSample = sample
+				smallestPath = prior.Path
+			}
+
+			for _, card := range set.Cards {
+				if strings.HasPrefix(card.Path, prior.Path) && card.TotalCompletions() == 0 {
+					pathMap[prior.Path] = append(pathMap[prior.Path], card)
+				}
+			}
+		}
+
+		questions = pathMap[smallestPath]
+	}
+
+	return questions[view.rng.Intn(len(questions))]
+}
+
+// NewViewBayesian returns a new view based on Bayesian inference.
+func NewViewBayesian(seed int64) *Bayesian {
+	return &Bayesian{
+		rng: rand.New(rand.NewSource(seed)),
+	}
 }

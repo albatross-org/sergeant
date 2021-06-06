@@ -48,6 +48,8 @@ func handlerSetsGet(c *gin.Context) {
 		return
 	}
 
+	fmt.Println(view, viewName)
+
 	card := view.Next(set)
 	if card == nil {
 		c.JSON(http.StatusBadRequest, gin.H{

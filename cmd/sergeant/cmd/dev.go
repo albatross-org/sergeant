@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"path/filepath"
 	"time"
@@ -49,20 +48,30 @@ var devCmd = &cobra.Command{
 		difficulties := sergeant.NewViewDifficulties(time.Now().UnixNano())
 		pathTrie, _ := difficulties.BuildTrie(set)
 
-		fmt.Println("digraph {")
-		fmt.Println("\trankdir=LR")
-		pathTrie.Walk(func(child string, value interface{}) error {
-			parent := pathTrie.Get(filepath.Dir(child))
-			if parent == nil {
-				return nil
-			}
+		// fmt.Println("digraph {")
+		// fmt.Println("\trankdir=LR")
+		// pathTrie.Walk(func(child string, value interface{}) error {
+		// 	parent := pathTrie.Get(filepath.Dir(child))
+		// 	if parent == nil {
+		// 		return nil
+		// 	}
 
-			diff := value.(*sergeant.ProbabilityNode).Difficulty
-			fmt.Printf("\t\"%s\" -> \"%s\" [label=\"%f\" fontsize=%f]\n", parent.(*sergeant.ProbabilityNode).Path, child, diff, math.Pow((1-diff), 2)*64)
+		// 	diff := value.(*sergeant.ProbabilityNode).Difficulty
+		// 	fmt.Printf("\t\"%s\" -> \"%s\" [label=\"%f\" fontsize=%f]\n", parent.(*sergeant.ProbabilityNode).Path, child, diff, math.Pow((1-diff), 2)*64)
+
+		// 	return nil
+		// })
+		// fmt.Println("}")
+
+		fmt.Println("G = nx.DiGraph()")
+		pathTrie.Walk(func(child string, value interface{}) error {
+			fmt.Printf("G.add_node('%s', questions_completed=0)\n", child)
+			fmt.Printf("G.add_edge('%s', '%s')\n", filepath.Dir(child), child)
+
+			// fmt.Printf("\t\"%s\" -> \"%s\" [label=\"%f\" fontsize=%f]\n", parent.(*sergeant.ProbabilityNode).Path, child, diff, math.Pow((1-diff), 2)*64)
 
 			return nil
 		})
-		fmt.Println("}")
 	},
 }
 
