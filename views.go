@@ -313,6 +313,7 @@ func (view *Bayesian) Next(set *Set) *Card {
 	})
 
 	pathMap := map[string][]*Card{}
+	blacklisted := map[string]bool{}
 	questions := []*Card{}
 
 	for len(questions) == 0 {
@@ -323,7 +324,7 @@ func (view *Bayesian) Next(set *Set) *Card {
 			dist := distuv.Beta{Alpha: float64(prior.Alpha), Beta: float64(prior.Beta), Src: exprand.NewSource(view.rng.Uint64())}
 			sample := dist.Rand()
 
-			if sample < smallestSample {
+			if sample < smallestSample && !blacklisted[prior.Path] {
 				smallestSample = sample
 				smallestPath = prior.Path
 			}
@@ -336,6 +337,10 @@ func (view *Bayesian) Next(set *Set) *Card {
 		}
 
 		questions = pathMap[smallestPath]
+
+		if len(questions) == 0 {
+			blacklisted[smallestPath] = true
+		}
 	}
 
 	return questions[view.rng.Intn(len(questions))]
