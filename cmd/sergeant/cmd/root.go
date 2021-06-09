@@ -45,7 +45,14 @@ var rootCmd = &cobra.Command{
 			logrus.Warningf("Malformed card: %s -> %s", path, warning)
 		}
 
-		logrus.Infof("Loaded %d cards.", len(set.Cards))
+		completed := 0
+		for _, card := range set.Cards {
+			if card.TotalCompletions() > 0 {
+				completed++
+			}
+		}
+
+		logrus.Infof("Loaded %d cards, %d completd. (%.2f%%)", len(set.Cards), completed, 100*float64(completed)/float64(len(set.Cards)))
 
 		server.Run(store)
 	},
