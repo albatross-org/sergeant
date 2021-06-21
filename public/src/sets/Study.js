@@ -34,6 +34,7 @@ class Study extends React.Component {
         this.startTime = new Date().getTime()
 
         this.handleFlip = this.handleFlip.bind(this)
+        this.handleUnflip = this.handleUnflip.bind(this)
         this.handleAnswer = this.handleAnswer.bind(this)
     }
 
@@ -78,6 +79,9 @@ class Study extends React.Component {
                 case "3":
                     this.handleAnswer("skip")
                     break
+                case "4":
+                    this.handleUnflip()
+                    break
             }
 
         }
@@ -89,6 +93,13 @@ class Study extends React.Component {
         this.setState({
             endTime: new Date().getTime(),
             flipped: true,
+        })
+    }
+
+    // handleUnflip handles what happens when the card is turned back over after being flipped.
+    handleUnflip() {
+        this.setState({
+            flipped: false,
         })
     }
 
@@ -232,6 +243,7 @@ class Study extends React.Component {
                     <Controls
                         flipped={this.state.flipped}
                         handleFlip={this.handleFlip}
+                        handleUnflip={this.handleUnflip}
                         handleAnswer={this.handleAnswer}
                         error={this.state.error}
                     />
@@ -343,6 +355,7 @@ function Controls(props) {
                 <Button key="major" data-for="controlsTooltip" data-tip="Shortcut: 1" onClick={() => props.handleAnswer("major")} color="warning" disabled={!!props.error}>Major</Button>
                 <Button key="minor" data-for="controlsTooltip" data-tip="Shortcut: 2" onClick={() => props.handleAnswer("minor")} color="info" disabled={!!props.error}>Minor</Button>
                 <Button key="skip" data-for="controlsTooltip" data-tip="Shortcut: 3" onClick={() => props.handleAnswer("skip")} color="white" disabled={!!props.error}>Skip</Button>
+                <Button key="unflip" data-for="controlsTooltip" data-tip="Shortcut: 4" onClick={() => props.handleUnflip()} color="light">Unflip</Button>
             </Container>
         );
     }
