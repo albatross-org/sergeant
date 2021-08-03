@@ -303,9 +303,10 @@ func (view *Bayesian) Next(set *Set) *Card {
 	pathTrie.Walk(func(key string, value interface{}) error {
 		node := value.(*ProbabilityNode)
 
+		// We use 2+ and 4+ rather than the typical 1+ because it we prioritize information gain for different topics.
 		priors = append(priors, bayesianBetaDistribution{
-			Alpha: 1 + node.Perfect,
-			Beta:  1 + node.Major + node.Minor,
+			Alpha: 2 + node.Perfect,
+			Beta:  4 + node.Major + node.Minor,
 			Path:  key,
 		})
 
