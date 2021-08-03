@@ -26,7 +26,7 @@ var DefaultViews = map[string]View{
 
 // View is a certain way of scheduling cards.
 type View interface {
-	Next(set *Set) *Card
+	Next(set *Set, user string) *Card
 }
 
 // Random selects a random card from all possible cards.
@@ -42,7 +42,7 @@ func NewViewRandom(seed int64) *Random {
 }
 
 // Next looks at all previous cards and decides what card to show next.
-func (view *Random) Next(set *Set) *Card {
+func (view *Random) Next(set *Set, user string) *Card {
 	return set.Cards[view.rng.Intn(len(set.Cards))]
 }
 
@@ -59,11 +59,11 @@ func NewViewUnseen(seed int64) *Unseen {
 }
 
 // Next looks at all previous cards and decides what card to show next.
-func (view *Unseen) Next(set *Set) *Card {
+func (view *Unseen) Next(set *Set, user string) *Card {
 	candidates := []*Card{}
 
 	for _, card := range set.Cards {
-		if len(card.CompletionsMajor)+len(card.CompletionsMinor)+len(card.CompletionsPerfect) == 0 {
+		if card.TotalCompletionsUser(user) == 0 {
 			candidates = append(candidates, card)
 		}
 	}
@@ -127,7 +127,7 @@ type ProbabilityNode struct {
 // A trie is a "prefix tree", where each all elements that share a common prefix are grouped under the same parent.
 // This uses a question's path to create a hierarchy of all the possible questions.
 // It will also return a sorted slice of all paths present.
-func (view *Difficulties) BuildTrie(set *Set) (pathTrie *trie.PathTrie, paths []string) {
+func (view *Difficulties) BuildTrie(set *Set, user string) (pathTrie *trie.PathTrie, paths []string) {
 	pathTrie = trie.NewPathTrie()
 
 	// Create a trie based on all the different paths for the cards.
@@ -135,7 +135,7 @@ func (view *Difficulties) BuildTrie(set *Set) (pathTrie *trie.PathTrie, paths []
 	for _, card := range set.Cards {
 		components := strings.Split(card.PathParent(), "/")
 		for i := 1; i < len(components); i++ {
-			putOrUpdateTrie(pathTrie, strings.Join(components[:i], "/"), card)
+			putOrUpdateTrie(pathTrie, strings.Join(components[:i], "/"), card, user)
 		}
 
 	}
@@ -187,8 +187,8 @@ func (view *Difficulties) BuildTrie(set *Set) (pathTrie *trie.PathTrie, paths []
 }
 
 // Next looks at all previous cards and decides what card to show next.
-func (view *Difficulties) Next(set *Set) *Card {
-	pathTrie, paths := view.BuildTrie(set)
+func (view *Difficulties) Next(set *Set, user string) *Card {
+	pathTrie, paths := view.BuildTrie(set, user)
 
 	if len(paths) == 0 {
 		return nil
@@ -200,7 +200,7 @@ func (view *Difficulties) Next(set *Set) *Card {
 	// TODO: this is an expensive operation.
 	for _, path := range paths {
 		for _, card := range set.Cards {
-			if strings.HasPrefix(card.Path, path) && card.TotalCompletions() == 0 {
+			if strings.HasPrefix(card.Path, path) && card.TotalCompletionsUser(user) == 0 {
 				pathMap[path] = append(pathMap[path], card)
 			}
 		}
@@ -240,19 +240,19 @@ func (view *Difficulties) Next(set *Set) *Card {
 }
 
 // putOrUpdateTrie will put a trie value or update it if it already exists for this path.
-func putOrUpdateTrie(trie *trie.PathTrie, path string, card *Card) {
+func putOrUpdateTrie(trie *trie.PathTrie, path string, card *Card, user string) {
 	if existing := trie.Get(path); existing != nil {
 		existing := existing.(*ProbabilityNode)
-		existing.Perfect += len(card.CompletionsPerfect)
-		existing.Minor += len(card.CompletionsMinor)
-		existing.Major += len(card.CompletionsMajor)
+		existing.Perfect += card.UserPerfect(user)
+		existing.Minor += card.UserMinor(user)
+		existing.Major += card.UserMajor(user)
 		trie.Put(path, existing)
 	} else {
 		trie.Put(path, &ProbabilityNode{
 			Path:    path,
-			Perfect: len(card.CompletionsPerfect),
-			Minor:   len(card.CompletionsMinor),
-			Major:   len(card.CompletionsMajor),
+			Perfect: card.UserPerfect(user),
+			Minor:   card.UserMinor(user),
+			Major:   card.UserMajor(user),
 		})
 	}
 }
@@ -284,7 +284,7 @@ type bayesianBetaDistribution struct {
 }
 
 // Next looks at all previous cards and decides what card to show next.
-func (view *Bayesian) Next(set *Set) *Card {
+func (view *Bayesian) Next(set *Set, user string) *Card {
 	pathTrie := trie.NewPathTrie()
 
 	// Create a trie based on all the different paths for the cards.
@@ -292,7 +292,7 @@ func (view *Bayesian) Next(set *Set) *Card {
 	for _, card := range set.Cards {
 		components := strings.Split(card.PathParent(), "/")
 		for i := 1; i < len(components); i++ {
-			putOrUpdateTrie(pathTrie, strings.Join(components[:i], "/"), card)
+			putOrUpdateTrie(pathTrie, strings.Join(components[:i], "/"), card, user)
 		}
 
 	}
@@ -331,7 +331,7 @@ func (view *Bayesian) Next(set *Set) *Card {
 			}
 
 			for _, card := range set.Cards {
-				if strings.HasPrefix(card.Path, prior.Path) && card.TotalCompletions() == 0 {
+				if strings.HasPrefix(card.Path, prior.Path) && card.TotalCompletionsUser(user) == 0 {
 					pathMap[prior.Path] = append(pathMap[prior.Path], card)
 				}
 			}

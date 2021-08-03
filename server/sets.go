@@ -211,45 +211,51 @@ type SetHeatmapJSON struct {
 	Major   int    `json:"major"`
 }
 
-// getSetHeatmapJSON returns the SetHeatmapJSON for a specific set.
-func getSetHeatmapJSON(set *sergeant.Set) []SetHeatmapJSON {
+// getSetHeatmapJSON returns the SetHeatmapJSON for a specific set and user. If user is blank, it uses all completions.
+func getSetHeatmapJSON(set *sergeant.Set, user string) []SetHeatmapJSON {
 	days := map[string]*SetHeatmapJSON{}
 
 	for _, card := range set.Cards {
 		for _, completion := range card.CompletionsPerfect {
-			date := completion.Date.Format("2006-01-02")
+			if user == "" || user == completion.User {
+				date := completion.Date.Format("2006-01-02")
 
-			if days[date] == nil {
-				days[date] = &SetHeatmapJSON{}
+				if days[date] == nil {
+					days[date] = &SetHeatmapJSON{}
+				}
+
+				days[date].Perfect++
+				days[date].Day = date
+				days[date].Value += int(completion.Duration) / (1000 * 1000 * 1000)
 			}
-
-			days[date].Perfect++
-			days[date].Day = date
-			days[date].Value += int(completion.Duration) / (1000 * 1000 * 1000)
 		}
 
 		for _, completion := range card.CompletionsMinor {
-			date := completion.Date.Format("2006-01-02")
+			if user == "" || user == completion.User {
+				date := completion.Date.Format("2006-01-02")
 
-			if days[date] == nil {
-				days[date] = &SetHeatmapJSON{}
+				if days[date] == nil {
+					days[date] = &SetHeatmapJSON{}
+				}
+
+				days[date].Minor++
+				days[date].Day = date
+				days[date].Value += int(completion.Duration) / (1000 * 1000 * 1000)
 			}
-
-			days[date].Minor++
-			days[date].Day = date
-			days[date].Value += int(completion.Duration) / (1000 * 1000 * 1000)
 		}
 
 		for _, completion := range card.CompletionsMajor {
-			date := completion.Date.Format("2006-01-02")
+			if user == "" || user == completion.User {
+				date := completion.Date.Format("2006-01-02")
 
-			if days[date] == nil {
-				days[date] = &SetHeatmapJSON{}
+				if days[date] == nil {
+					days[date] = &SetHeatmapJSON{}
+				}
+
+				days[date].Major++
+				days[date].Day = date
+				days[date].Value += int(completion.Duration) / (1000 * 1000 * 1000)
 			}
-
-			days[date].Major++
-			days[date].Day = date
-			days[date].Value += int(completion.Duration) / (1000 * 1000 * 1000)
 		}
 
 	}

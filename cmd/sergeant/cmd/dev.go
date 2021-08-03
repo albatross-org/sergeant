@@ -46,7 +46,7 @@ var devCmd = &cobra.Command{
 		}
 
 		difficulties := sergeant.NewViewDifficulties(time.Now().UnixNano())
-		pathTrie, _ := difficulties.BuildTrie(set)
+		pathTrie, _ := difficulties.BuildTrie(set, "")
 
 		// fmt.Println("digraph {")
 		// fmt.Println("\trankdir=LR")

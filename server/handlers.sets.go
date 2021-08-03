@@ -1,8 +1,10 @@
 package server
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/albatross-org/sergeant"
 	"github.com/gin-gonic/gin"
@@ -48,9 +50,23 @@ func handlerSetsGet(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(view, viewName)
+	var user string
 
-	card := view.Next(set)
+	auth := c.Request.Header["Authorization"]
+
+	if len(auth) == 1 {
+		if strings.HasPrefix(auth[0], "Basic ") {
+			b64 := strings.TrimPrefix(auth[0], "Basic ")
+			authBytes, err := base64.StdEncoding.DecodeString(b64)
+			if err != nil {
+				user = ""
+			} else {
+				user = strings.Split(string(authBytes), ":")[0]
+			}
+		}
+	}
+
+	card := view.Next(set, user)
 	if card == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": fmt.Sprintf("couldn't get a card from the %q view", viewName),
@@ -82,6 +98,22 @@ func handlerSetsStats(c *gin.Context) {
 		return
 	}
 
+	var user string
+
+	auth := c.Request.Header["Authorization"]
+
+	if len(auth) == 1 {
+		if strings.HasPrefix(auth[0], "Basic ") {
+			b64 := strings.TrimPrefix(auth[0], "Basic ")
+			authBytes, err := base64.StdEncoding.DecodeString(b64)
+			if err != nil {
+				user = ""
+			} else {
+				user = strings.Split(string(authBytes), ":")[0]
+			}
+		}
+	}
+
 	set, _, err := store.SetFromConfig(setConfig)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -90,5 +122,5 @@ func handlerSetsStats(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, getSetHeatmapJSON(set))
+	c.JSON(http.StatusOK, getSetHeatmapJSON(set, user))
 }

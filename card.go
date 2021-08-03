@@ -28,10 +28,12 @@ type Card struct {
 	AnswerPath   string
 }
 
-// Completion is a mark specifying that a card was completed at a certain date in a certain amount of time.
+// Completion is a mark specifying that a card was completed at a certain date in a certain amount of time,
+// by a certain user.
 type Completion struct {
 	Date     time.Time     `yaml:"date"`
 	Duration time.Duration `yaml:"time"`
+	User     string        `yaml:"user"`
 }
 
 // PathParent returns the path to the parent of the card. You could think of this as the card category.
@@ -52,6 +54,62 @@ func (card *Card) AnswerImage() (string, error) {
 // TotalCompletions returns the total number of completions for this card.
 func (card *Card) TotalCompletions() int {
 	return len(card.CompletionsMajor) + len(card.CompletionsMinor) + len(card.CompletionsPerfect)
+}
+
+// UserPerfect returns the total number of perfect completions for a user.
+func (card *Card) UserPerfect(user string) int {
+	if user == "" {
+		return len(card.CompletionsPerfect)
+	}
+
+	count := 0
+
+	for _, completion := range card.CompletionsPerfect {
+		if completion.User == user {
+			count++
+		}
+	}
+
+	return count
+}
+
+// UserMajor returns the total number of perfect completions for a user.
+func (card *Card) UserMajor(user string) int {
+	if user == "" {
+		return len(card.CompletionsMajor)
+	}
+
+	count := 0
+
+	for _, completion := range card.CompletionsMajor {
+		if completion.User == user {
+			count++
+		}
+	}
+
+	return count
+}
+
+// UserMinor returns the total number of perfect completions for a user.
+func (card *Card) UserMinor(user string) int {
+	if user == "" {
+		return len(card.CompletionsMinor)
+	}
+
+	count := 0
+
+	for _, completion := range card.CompletionsMajor {
+		if completion.User == user {
+			count++
+		}
+	}
+
+	return count
+}
+
+// TotalCompletions returns the total number of completions for this card, by a certain user.
+func (card *Card) TotalCompletionsUser(user string) int {
+	return card.UserPerfect(user) + card.UserMajor(user) + card.UserMinor(user)
 }
 
 // Content returns how the card is represented as an entry. Think of it like the opposite of cardFromEntry.
@@ -102,18 +160,22 @@ func (card *Card) Content() (string, error) {
 //       perfect:                                  // This becomes the .CompletionsPerfect field.
 //           - date: 2021-02-16 10:18
 //             time: 7m10s
+//			   user: olly
 //       minor:                                    // This becomes the .CompletionsMinor field.
 //           - date: 2021-02-16 10:18
 //             time: 5m51s
+//             user: jeff
 //       major:                                    // This becomes the .CompletionsMajor field.
 //           - date: 2021-02-16 10:18
 //             time: 5m53s
+//			   user: olly
 //           - date: 2021-02-16 10:18
 //             time: 5m53s
+//             user: jeff
 //   ---
 //   Any additional notes about the card (This becomes the .Notes field).
 func cardFromEntry(entry *entries.Entry) (*Card, error) {
-	var card = &Card{}
+	card := &Card{}
 
 	// Check the entry is nil, we want to error instead of panicing with a nil pointer dereference.
 	if entry == nil {
@@ -294,9 +356,15 @@ func completionsMapToStruct(completionsMap map[string][]map[string]string) (comp
 				return nil, nil, nil, fmt.Errorf("'time' field %q in %q completion list not a valid duration: %w", completionMap["time"], completionType, err)
 			}
 
+			user := completionMap["user"]
+			if user == "" {
+				user = "olly" // TODO: change this
+			}
+
 			completion := Completion{
 				Date:     date,
 				Duration: duration,
+				User:     user,
 			}
 
 			switch completionType {
@@ -324,6 +392,7 @@ func completionToStringMap(completions []Completion) []map[string]string {
 		stringMap := map[string]string{}
 		stringMap["date"] = completion.Date.Format("2006-01-02 15:04")
 		stringMap["time"] = completion.Duration.String()
+		stringMap["user"] = completion.User
 
 		out = append(out, stringMap)
 	}
