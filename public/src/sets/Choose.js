@@ -74,14 +74,10 @@ class Choose extends React.Component {
                     <Heading size={3}>How do you want to study?</Heading>
                     <Box>
                         <Option
-                            viewName="Balanced"
-                            description="A mix of random cards and some previous mistakes."
+                            viewName="Bayesian"
+                            description="Picks cards it thinks you're likely to get wrong."
                             name={this.state.set.name}
-                        />
-                        <Option
-                            viewName="Random"
-                            description="Any card in the set may appear."
-                            name={this.state.set.name}
+                            highlight
                         />
                         <Option
                             viewName="Unseen"
@@ -89,13 +85,8 @@ class Choose extends React.Component {
                             name={this.state.set.name}
                         />
                         <Option
-                            viewName="Difficulties"
-                            description="Shows cards predicted you'll most likely get wrong."
-                            name={this.state.set.name}
-                        />
-                        <Option
-                            viewName="Bayesian"
-                            description="Uses Bayesian inference to pick optimal cards."
+                            viewName="Random"
+                            description="Any card in the set may appear."
                             name={this.state.set.name}
                         />
                     </Box>
@@ -104,15 +95,18 @@ class Choose extends React.Component {
 
             <Section>
                 <Container>
-                    <Heading>Info</Heading>
+                    <Heading>Help</Heading>
                     <Content>
                         <p>
-                           <code>{this.state.set.displayName}</code> is a custom set consisting of the following paths:
+                            Pick:
+                            <ul>
+                                <li><strong>Perfect</strong> if you get the question correct with nothing wrong.</li>
+                                <li><strong>Major</strong> if you get the question wrong in a big way (e.g. you don't understand how something works).</li>
+                                <li><strong>Minor</strong> if you get the question wrong in a little way (e.g. you put a plus instead of minus).</li>
+                                <li><strong>Skip</strong> if you want to skip the question.</li>
+                                <li><strong>Unflip</strong> if you want to see the other side of the card again.</li>
+                            </ul>
                         </p>
-
-                        <pre>
-                            further-maths/
-                        </pre>
                     </Content>
                 </Container>
             </Section>
@@ -142,7 +136,11 @@ const Option = (props) => {
         >
             <Columns>
                 <Columns.Column>
-                    <Heading size={4} renderAs="h1">{props.viewName}</Heading>
+                    {props.highlight || false ? 
+                        <Heading size={4} renderAs="h1"><i>{props.viewName}</i></Heading>
+                        :
+                        <Heading size={4} renderAs="h1">{props.viewName}</Heading>
+                    }
                 </Columns.Column>
                 <Columns.Column style={{
                     display: "flex",

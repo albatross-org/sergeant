@@ -98,7 +98,7 @@ func (card *Card) UserMinor(user string) int {
 
 	count := 0
 
-	for _, completion := range card.CompletionsMajor {
+	for _, completion := range card.CompletionsMinor {
 		if completion.User == user {
 			count++
 		}

@@ -33,7 +33,6 @@ var rootCmd = &cobra.Command{
 			logrus.Fatal(err)
 		}
 
-		fmt.Println(underlyingStore.UsingGit())
 		store := sergeant.NewStore(underlyingStore, config)
 
 		set, warnings, err := store.Set("all")
@@ -52,7 +51,7 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		logrus.Infof("Loaded %d cards, %d completd. (%.2f%%)", len(set.Cards), completed, 100*float64(completed)/float64(len(set.Cards)))
+		logrus.Infof("Loaded %d cards, %d completed. (%.2f%%)", len(set.Cards), completed, 100*float64(completed)/float64(len(set.Cards)))
 
 		server.Run(store)
 	},
