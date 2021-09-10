@@ -353,3 +353,66 @@ func NewViewBayesian(seed int64) *Bayesian {
 		rng: rand.New(rand.NewSource(seed)),
 	}
 }
+
+// CardEvaluation contains card information and the mean for the prior for that card.
+type CardEvaluation struct {
+	Path               string  `json:"path"`
+	Mean               float64 `json:"mean"`
+	QuestionsAvailable int     `json:"questionsAvailable"`
+	QuestionsCompleted int     `json:"questionsCompleted"`
+}
+
+// Difficulties returns the most difficult topics for a Bayesian set.
+func (view *Bayesian) Difficulties(set *Set, user string) []CardEvaluation {
+	pathTrie := trie.NewPathTrie()
+
+	// Create a trie based on all the different paths for the cards.
+	// We store a probabilityNode at each one which holds information about the success rates for each path.
+	for _, card := range set.Cards {
+		components := strings.Split(card.PathParent(), "/")
+		for i := 1; i < len(components); i++ {
+			putOrUpdateTrie(pathTrie, strings.Join(components[:i], "/"), card, user)
+		}
+
+	}
+
+	evaluations := []CardEvaluation{}
+
+	// Here we walk the tree in a breadth-first fashion and create a beta distribution for each one.
+	pathTrie.Walk(func(key string, value interface{}) error {
+		node := value.(*ProbabilityNode)
+
+		// We use 2+ and 4+ rather than the typical 1+ because it we prioritize information gain for different topics.
+		total := node.Perfect + node.Minor + node.Major
+		alpha := 2 + node.Perfect
+		beta := 4 + node.Major + node.Minor
+		available := 0
+
+		for _, card := range set.Cards {
+			if strings.HasPrefix(card.Path, key) {
+				available += 1
+			}
+		}
+
+		if total > 0 {
+			evaluations = append(evaluations, CardEvaluation{
+				Path:               key,
+				Mean:               float64(alpha) / float64(alpha+beta),
+				QuestionsCompleted: total,
+				QuestionsAvailable: available,
+			})
+		}
+
+		return nil
+	})
+
+	sort.Slice(evaluations, func(i, j int) bool {
+		if evaluations[i].Mean != evaluations[j].Mean {
+			return evaluations[i].Mean < evaluations[j].Mean
+		} else {
+			return evaluations[i].Path < evaluations[j].Path
+		}
+	})
+
+	return evaluations
+}

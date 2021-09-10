@@ -2,7 +2,7 @@ import React from "react"
 import { Section, Container, Heading, Box, Columns, Hero, Content, Loader } from 'react-bulma-components';
 import { Link } from 'react-router-dom'
 
-import CalendarHeatmap from '../common/CalendarHeatmap'
+import { Stats } from "../common/Stats";
 
 import "./Choose.css"
 
@@ -111,20 +111,7 @@ class Choose extends React.Component {
                 </Container>
             </Section>
 
-            <Section>
-                <Container>
-                    <Heading>Stats</Heading>
-                    <Heading subtitle size={6}>Here's your stats for this set:</Heading>
-                    <Box style={{ height: "30vh" }}>
-                        <CalendarHeatmap
-                            colors={['#D7816A', '#BD4F6C']}
-                            from={`${year}-01-01`}
-                            to={`${year}-12-31`}
-                            query={`?setName=${this.state.set.name}`}
-                        />
-                    </Box>
-                </Container>
-            </Section>
+            <Stats query={`?setName=${this.state.set.name}`} isSet />
         </div>
     }
 }

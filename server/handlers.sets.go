@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/albatross-org/sergeant"
 	"github.com/gin-gonic/gin"
@@ -89,7 +90,7 @@ func handlerSetsList(c *gin.Context) {
 	c.JSON(http.StatusOK, getSetListJSON())
 }
 
-func handlerSetsStats(c *gin.Context) {
+func handlerSetsStatsHeatmap(c *gin.Context) {
 	setConfig, err := setConfigFromRequest(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -123,4 +124,95 @@ func handlerSetsStats(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, getSetHeatmapJSON(set, user))
+}
+
+func handlerSetsStatsTime(c *gin.Context) {
+	setConfig, err := setConfigFromRequest(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	var user string
+
+	auth := c.Request.Header["Authorization"]
+
+	if len(auth) == 1 {
+		if strings.HasPrefix(auth[0], "Basic ") {
+			b64 := strings.TrimPrefix(auth[0], "Basic ")
+			authBytes, err := base64.StdEncoding.DecodeString(b64)
+			if err != nil {
+				user = ""
+			} else {
+				user = strings.Split(string(authBytes), ":")[0]
+			}
+		}
+	}
+
+	set, _, err := store.SetFromConfig(setConfig)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("error loading set %q: %s", setConfig.Name, err),
+		})
+		return
+	}
+
+	totalTime := time.Duration(0)
+
+	for _, card := range set.Cards {
+		completionTypes := [][]sergeant.Completion{card.CompletionsPerfect, card.CompletionsMinor, card.CompletionsMajor}
+
+		for _, completionType := range completionTypes {
+			for _, completionPerfect := range completionType {
+				if completionPerfect.User == user {
+					totalTime += completionPerfect.Duration
+				}
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"time": totalTime.Seconds(),
+	})
+}
+
+func handlerSetsDifficulties(c *gin.Context) {
+	setConfig, err := setConfigFromRequest(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	var user string
+
+	auth := c.Request.Header["Authorization"]
+
+	if len(auth) == 1 {
+		if strings.HasPrefix(auth[0], "Basic ") {
+			b64 := strings.TrimPrefix(auth[0], "Basic ")
+			authBytes, err := base64.StdEncoding.DecodeString(b64)
+			if err != nil {
+				user = ""
+			} else {
+				user = strings.Split(string(authBytes), ":")[0]
+			}
+		}
+	}
+
+	set, _, err := store.SetFromConfig(setConfig)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("error loading set %q: %s", setConfig.Name, err),
+		})
+		return
+	}
+
+	view := sergeant.Bayesian{}
+	evaluations := view.Difficulties(set, user)
+
+	c.JSON(http.StatusOK, evaluations)
 }

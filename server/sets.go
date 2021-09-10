@@ -126,7 +126,7 @@ func setConfigFromRequest(c *gin.Context) (sergeant.ConfigSet, error) {
 
 	existingConfig, exists := store.Sets[name]
 	if !exists {
-		return sergeant.ConfigSet{}, fmt.Errorf("The existing set %q doesn't exist", name)
+		return sergeant.ConfigSet{}, fmt.Errorf("the existing set %q doesn't exist", name)
 	}
 
 	config = existingConfig
@@ -169,7 +169,7 @@ func setConfigFromRequest(c *gin.Context) (sergeant.ConfigSet, error) {
 	if exists {
 		config.BeforeDuration, err = time.ParseDuration(rawBeforeDuration)
 		if err != nil {
-			return sergeant.ConfigSet{}, fmt.Errorf("Invalid before duration %q specified: %w", rawBeforeDuration, err)
+			return sergeant.ConfigSet{}, fmt.Errorf("invalid before duration %q specified: %w", rawBeforeDuration, err)
 		}
 	}
 
@@ -177,7 +177,7 @@ func setConfigFromRequest(c *gin.Context) (sergeant.ConfigSet, error) {
 	if exists {
 		config.AfterDuration, err = time.ParseDuration(rawAfterDuration)
 		if err != nil {
-			return sergeant.ConfigSet{}, fmt.Errorf("Invalid after duration %q specified: %w", rawAfterDuration, err)
+			return sergeant.ConfigSet{}, fmt.Errorf("invalid after duration %q specified: %w", rawAfterDuration, err)
 		}
 	}
 
@@ -185,7 +185,7 @@ func setConfigFromRequest(c *gin.Context) (sergeant.ConfigSet, error) {
 	if exists {
 		config.BeforeDate, err = time.Parse("2006-01-02 15:04", rawBeforeDate)
 		if err != nil {
-			return sergeant.ConfigSet{}, fmt.Errorf("Invalid before date %q specified: %w", rawBeforeDate, err)
+			return sergeant.ConfigSet{}, fmt.Errorf("invalid before date %q specified: %w", rawBeforeDate, err)
 		}
 	}
 
@@ -193,7 +193,7 @@ func setConfigFromRequest(c *gin.Context) (sergeant.ConfigSet, error) {
 	if exists {
 		config.AfterDate, err = time.Parse("2006-01-02 15:04", rawAfterDate)
 		if err != nil {
-			return sergeant.ConfigSet{}, fmt.Errorf("Invalid after date %q specified: %w", rawAfterDate, err)
+			return sergeant.ConfigSet{}, fmt.Errorf("invalid after date %q specified: %w", rawAfterDate, err)
 		}
 	}
 

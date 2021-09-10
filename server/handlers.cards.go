@@ -24,7 +24,7 @@ func handlerCardUpdate(c *gin.Context) {
 
 	if answer.ID == "" || answer.Duration == 0 || answer.Answer == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("couldn't decode put request: some fields are blank"),
+			"error": "couldn't decode put request: some fields are blank",
 		})
 		return
 	}

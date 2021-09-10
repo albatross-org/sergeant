@@ -27,8 +27,9 @@ func initRoutes() {
 		{
 			sets.GET("/get", handlerSetsGet)
 			sets.GET("/list", handlerSetsList)
-			sets.GET("/stats", handlerSetsStats)
+			sets.GET("/stats/heatmap", handlerSetsStatsHeatmap)
+			sets.GET("/stats/time", handlerSetsStatsTime)
+			sets.GET("/stats/difficulties", handlerSetsDifficulties)
 		}
 	}
-
 }

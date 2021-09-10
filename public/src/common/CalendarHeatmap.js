@@ -1,6 +1,6 @@
 import React from 'react'
 import { Loader, Box } from 'react-bulma-components'
-import { ResponsiveCalendar } from '@nivo/calendar'
+import { Calendar, ResponsiveCalendar } from '@nivo/calendar'
 
 // CalendarHeatmap is a calendar that shows a different colour depending on the value at a given day.
 class CalendarHeatmap extends React.Component {
@@ -28,7 +28,7 @@ class CalendarHeatmap extends React.Component {
 
     fetchStats() {
         // TODO: Graceful API request.
-        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/stats${this.query}`
+        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/stats/heatmap${this.query}`
         console.log(`GET STATS ${url}`)
         fetch(url)
             .then(response => response.json())
@@ -42,11 +42,13 @@ class CalendarHeatmap extends React.Component {
     }
 
     render() {
+        let year = new Date().getFullYear()
+
         if (this.state.data) {
             return <ResponsiveCalendar
-                data={this.state.data}
-                from={this.props.from}
-                to={this.props.to}
+            data={this.state.data}
+                from={`${year}-01-01`}
+                to={`${year}-12-31`}
                 emptyColor="#eeeeee"
                 colors={this.colors}
                 margin={{ top: 20, right: 20, bottom: 20, left: 20 }}

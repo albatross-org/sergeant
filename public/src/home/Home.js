@@ -2,7 +2,7 @@ import React from 'react'
 import { Section, Container, Heading, Box, Columns, Tile, Content } from 'react-bulma-components';
 
 import SetLink from '../common/SetLink'
-import CalendarHeatmap from '../common/CalendarHeatmap'
+import {Stats} from '../common/Stats'
 import "./Home.css"
 
 class Home extends React.Component {
@@ -31,7 +31,8 @@ class Home extends React.Component {
         return (
             <div>
                 <SectionSets data={this.state.sets} />
-                <SectionStats data={this.state.sets} />
+                <Stats query={`?setName=all`} />
+            
             </div>
         )
     }
@@ -53,26 +54,6 @@ class SectionSets extends React.Component {
     }
 }
 
-class SectionStats extends React.Component {
-    render() {
-        let year = new Date().getFullYear()
-
-        return <Section>
-            <Container>
-                <Heading>Stats</Heading>
-                <Heading subtitle size={6}>Here's how your reviews have broken down over the last year:</Heading>
-                <Box style={{ height: "30vh" }}>
-                    <CalendarHeatmap
-                        colors={['#D7816A', '#CE6F6B', '#C6166B', '#C2696C']}
-                        from={`${year}-01-01`}
-                        to={`${year}-12-31`}
-                        query={`?setName=all`}
-                    />
-                </Box>
-            </Container>
-        </Section>
-    }
-}
 
 class SetList extends React.Component {
     constructor(props) {
