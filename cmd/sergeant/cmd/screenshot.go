@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/pprof"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -47,6 +49,15 @@ Which will be present in every entry.
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
+		path, err := cmd.Flags().GetString("path")
+		checkFlag(err, "--path", "screenshot")
+
+		tags, err := cmd.Flags().GetStringSlice("tags")
+		checkFlag(err, "--tags", "screenshot")
+
+		disableGit, err := cmd.Flags().GetBool("disable-git")
+		checkFlag(err, "--disable-git", "screenshot")
+
 		configPath, err := cmd.Flags().GetString("config")
 		if err != nil {
 			logrus.Fatal(err)
@@ -62,11 +73,13 @@ Which will be present in every entry.
 			logrus.Fatal(err)
 		}
 
-		path, err := cmd.Flags().GetString("path")
-		checkFlag(err, "--path", "add")
+		if disableGit {
+			store.DisableGit()
+		}
 
-		tags, err := cmd.Flags().GetStringSlice("tags")
-		checkFlag(err, "--tags", "add")
+		mux := http.NewServeMux()
+		mux.HandleFunc("/profile", pprof.Profile)
+		go http.ListenAndServe(":7777", mux)
 
 		tempPath, cleanup := tempDir()
 		images := cardImages{tempPath: tempPath, cleanup: cleanup, mu: &sync.Mutex{}}
@@ -98,7 +111,7 @@ Which will be present in every entry.
 					logrus.Fatal(err)
 				}
 
-				entryPath, err := createCard(store, path, tags, questionImage, answerImage)
+				entryPath, err := fastCreateCard(store, path, tags, questionImage, answerImage)
 				if err != nil {
 					logrus.Fatal(err)
 				}
@@ -157,7 +170,7 @@ Which will be present in every entry.
 				logrus.Fatal(err)
 			}
 
-			entryPath, err := createCard(store, path, tags, questionImage, answerImage)
+			entryPath, err := fastCreateCard(store, path, tags, questionImage, answerImage)
 			if err != nil {
 				logrus.Fatal(err)
 			}
@@ -391,6 +404,7 @@ func tileImages(destination string, input []string) error {
 func init() {
 	screenshotCmd.Flags().StringP("path", "p", "", "path to where the card should go")
 	screenshotCmd.Flags().StringSliceP("tags", "t", []string{}, "tags to add to the entry created")
+	screenshotCmd.Flags().Bool("disable-git", false, "don't create commits for every question scanned")
 
 	rootCmd.AddCommand(screenshotCmd)
 }

@@ -48,12 +48,16 @@ For example:
 		path, err := cmd.Flags().GetString("path")
 		checkFlag(err, "--path", "complete")
 
+		user, err := cmd.Flags().GetString("user")
+		checkFlag(err, "--user", "complete")
+
 		timeTaken, err := cmd.Flags().GetDuration("time")
 		checkFlag(err, "--time", "complete")
 
 		err = store.AddCompletion(path, args[0], sergeant.Completion{
 			Date:     time.Now(),
 			Duration: timeTaken,
+			User:     user,
 		})
 		if err != nil {
 			fmt.Printf("Error adding %q completion to card %q: %s\n", args[0], path, err)
@@ -68,6 +72,7 @@ For example:
 
 func init() {
 	completeCmd.Flags().StringP("path", "p", "", "path to the card")
+	completeCmd.Flags().StringP("user", "u", "", "user to complete for")
 	completeCmd.Flags().DurationP("time", "t", time.Duration(0), "time taken to complete the card, in XhYmZs or YmZs format")
 
 	rootCmd.AddCommand(completeCmd)

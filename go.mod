@@ -10,6 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.7.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mroth/weightedrand v0.4.1
+	github.com/plus3it/gorecurcopy v0.0.1
 	github.com/robotn/gohook v0.30.5
 	github.com/segmentio/fasthash v1.0.3
 	github.com/sirupsen/logrus v1.8.1

@@ -125,7 +125,7 @@ class Study extends React.Component {
         }
 
         let duration = new Date().getTime() - this.state.cardTimeStart
-        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/cards/update`
+        let url = `${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/cards/update`
         console.log(`PUT CARD ${url}`)
 
         fetch(url, {
@@ -167,7 +167,7 @@ class Study extends React.Component {
         // TODO: Graceful API request here.
         let params = new URLSearchParams(this.props.location.search)
 
-        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/get?${String(params)}`
+        let url = `${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/get?${String(params)}`
         console.log(`GET CARD ${url}`)
         fetch(url)
             .then(response => response.json())
@@ -195,7 +195,7 @@ class Study extends React.Component {
 
     // fetchSet fetches the information about the current set.
     fetchSet() {
-        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/list`
+        let url = `${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/list`
         let name = new URLSearchParams(this.props.location.search).get("setName")
         console.log(`GET SETS ${url}`)
         fetch(url)
@@ -235,6 +235,7 @@ class Study extends React.Component {
                         flipped={this.state.flipped}
 
                         path={this.state.card?.path}
+                        id={this.state.card?.id}
                         questionImg={this.state.card?.questionImg}
                         answerImg={this.state.card?.answerImg}
                     />
@@ -310,7 +311,10 @@ function Card(props) {
         
         return (
             <Box className="card-box">
-                <Breadcrumb renderAs="a" hrefAttr="href" items={breadcrumbItems} />
+                <Breadcrumb onClick={e => {
+                    e.preventDefault();
+                    navigator.clipboard.writeText(props.path + '/question-' + props.id);
+                }} renderAs="a" hrefAttr="href" items={breadcrumbItems} />
                 <Container className="card-container">
                     <img
                         className="card-img"

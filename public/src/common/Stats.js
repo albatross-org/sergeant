@@ -36,7 +36,7 @@ export class StatsTotalTime extends React.Component {
     
     fetchStats() {
         // TODO: Graceful API request.
-        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/stats/time${this.query}`
+        let url = `${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/stats/time${this.query}`
         console.log(`GET STATS TIME ${url}`)
         fetch(url)
             .then(response => response.json())
@@ -71,7 +71,7 @@ export class StatsDifficulties extends React.Component {
     
     fetchStats() {
         // TODO: Graceful API request.
-        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/stats/difficulties${this.query}`
+        let url = `${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/stats/difficulties${this.query}`
         console.log(`GET STATS DIFFICULTIES ${url}`)
         fetch(url)
             .then(response => response.json())

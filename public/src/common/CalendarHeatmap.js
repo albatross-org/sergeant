@@ -28,7 +28,7 @@ class CalendarHeatmap extends React.Component {
 
     fetchStats() {
         // TODO: Graceful API request.
-        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/stats/heatmap${this.query}`
+        let url = `${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/stats/heatmap${this.query}`
         console.log(`GET STATS ${url}`)
         fetch(url)
             .then(response => response.json())

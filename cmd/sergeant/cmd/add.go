@@ -2,12 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/albatross-org/go-albatross/albatross"
 	"github.com/albatross-org/sergeant"
 	"github.com/fatih/color"
+	"github.com/plus3it/gorecurcopy"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -109,7 +112,8 @@ func createCard(store *albatross.Store, path string, tags []string, questionPath
 	// We need to create a path that's unique to the card, such as "further-maths/core-pure-1/chapter-1-complex-numbers/question-0NiDQqGdzxTSipJa".
 	entryPath := filepath.Join(path, "question-"+card.ID)
 
-	err = store.Create(entryPath, content)
+	// TODO: check if this is okay
+	err = store.FastCreate(entryPath, content)
 	if err != nil {
 		return "", fmt.Errorf("couldn't create card entry: %s", err)
 	}
@@ -125,6 +129,71 @@ func createCard(store *albatross.Store, path string, tags []string, questionPath
 	}
 
 	err = store.AttachCopyWithName(entryPath, answerPath, attachmentAnswerPath)
+	if err != nil {
+		return "", fmt.Errorf("couldn't attach answer image %q: %w", answerPath, err)
+	}
+
+	return entryPath, nil
+}
+
+// fastCreateCard creates a card with at the given path and tags with the question and answer as an attachment.
+// It returns the path to the new card and an error if there was one.
+// This was created as a temporary drop-in replacement to createCard because stores with more than a few hundred cards were taking
+// seconds to create cards for due to the 3 reloads in the process (create, attach question, attach answer). This implementation bypasses
+// the issue by creating the files directly without going through the Albatross API. This means that a few things don't work correctly, like
+// having all changes recorded into Git.
+func fastCreateCard(store *albatross.Store, path string, tags []string, questionPath, answerPath string) (string, error) {
+	if !exists(questionPath) {
+		return "", fmt.Errorf("path to question image does not exist")
+	}
+
+	if !exists(answerPath) {
+		return "", fmt.Errorf("path to answer image does not exist")
+	}
+
+	// We can omit lots of fields here since they won't be used to generate the entry content.
+	card := &sergeant.Card{
+		ID:   randomString(16),
+		Date: time.Now(),
+		Tags: tags,
+	}
+
+	content, err := card.Content()
+	if err != nil {
+		return "", fmt.Errorf("couldn't get card content: %s", err)
+	}
+
+	// path is only something like "further-maths/core-pure-1/chapter-1-complex-numbers".
+	// We need to create a path that's unique to the card, such as "further-maths/core-pure-1/chapter-1-complex-numbers/question-0NiDQqGdzxTSipJa".
+	entryPath := filepath.Join(path, "question-"+card.ID)
+	absolutePath := filepath.Join(store.Path, "entries", entryPath)
+
+	_, err = os.Stat(absolutePath)
+	if err != nil {
+		err = os.MkdirAll(absolutePath, 0755)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	fmt.Println(absolutePath)
+
+	err = ioutil.WriteFile(filepath.Join(absolutePath, "entry.md"), []byte(content), 0644)
+	if err != nil {
+		return "", err
+	}
+
+	// It might be that the question or answer image is called something like "screenshot.png". Entries are expected to have
+	// question/answer attachments in the form "question.png" or "answer.jpg" so we need to create those here.
+	attachmentQuestionPath := "question" + filepath.Ext(questionPath)
+	attachmentAnswerPath := "answer" + filepath.Ext(answerPath)
+
+	err = gorecurcopy.Copy(questionPath, filepath.Join(absolutePath, attachmentQuestionPath))
+	if err != nil {
+		return "", fmt.Errorf("couldn't attach question image %q: %w", questionPath, err)
+	}
+
+	err = gorecurcopy.Copy(answerPath, filepath.Join(absolutePath, attachmentAnswerPath))
 	if err != nil {
 		return "", fmt.Errorf("couldn't attach answer image %q: %w", answerPath, err)
 	}

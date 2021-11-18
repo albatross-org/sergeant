@@ -32,7 +32,7 @@ class Choose extends React.Component {
     }
 
     fetchSet() {
-        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/list`
+        let url = `${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/list`
         let name = new URLSearchParams(this.props.location.search).get("setName")
         console.log(`GET SETS ${url}`)
         fetch(url)

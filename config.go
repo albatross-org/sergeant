@@ -38,6 +38,8 @@ type ConfigSet struct {
 	PathsAnd []string `yaml:"paths-and"`
 	TagsAnd  []string `yaml:"tags-and"`
 
+	Hidden bool
+
 	BeforeDuration time.Duration
 	AfterDuration  time.Duration
 	BeforeDate     time.Time
@@ -183,6 +185,8 @@ type rawConfigSetDef struct {
 
 	Color      string `yaml:"color"`
 	Background string `yaml:"background"`
+
+	Hidden bool `yaml:"hidden"`
 }
 
 // parseRawConfigSetDef turns a rawConfigSetDef into a ConfigSet.
@@ -198,6 +202,8 @@ func parseRawConfigSetDef(rawConfigSet rawConfigSetDef) (ConfigSet, error) {
 
 	set.Color = rawConfigSet.Color
 	set.Background = rawConfigSet.Background
+
+	set.Hidden = rawConfigSet.Hidden
 
 	if rawConfigSet.Description == "" {
 		set.Description = "This is a custom set."

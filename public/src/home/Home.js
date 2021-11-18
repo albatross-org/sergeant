@@ -14,7 +14,7 @@ class Home extends React.Component {
 
     fetchSets() {
         // TODO: Graceful API request.
-        let url = `http://${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/list`
+        let url = `${process.env.REACT_APP_SERGEANT_API_ENDPOINT}/v1/sets/list`
         console.log(`GET SETS ${url}`)
         fetch(url)
             .then(response => response.json())

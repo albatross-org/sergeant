@@ -87,7 +87,9 @@ func getSetListJSON() SetListJSON {
 	response := SetListJSON{}
 
 	for name, set := range store.Sets {
-		response = append(response, setToJSON(name, set))
+		if !set.Hidden {
+			response = append(response, setToJSON(name, set))
+		}
 	}
 
 	sort.Sort(response)
