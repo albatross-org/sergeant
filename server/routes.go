@@ -1,11 +1,12 @@
 package server
 
 import (
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
-func initRoutes() {
+func initRoutes(profile bool) {
 	// Serve the web UI at the base path.
 	router.Use(
 		static.Serve("/", static.LocalFile("./public/build", true)),
@@ -31,5 +32,9 @@ func initRoutes() {
 			sets.GET("/stats/time", handlerSetsStatsTime)
 			sets.GET("/stats/difficulties", handlerSetsDifficulties)
 		}
+	}
+
+	if profile {
+		pprof.Register(router, "debug/profile")
 	}
 }

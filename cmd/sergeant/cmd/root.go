@@ -23,6 +23,11 @@ var rootCmd = &cobra.Command{
 			logrus.Fatal(err)
 		}
 
+		profile, err := cmd.Flags().GetBool("profile")
+		if err != nil {
+			logrus.Fatal(err)
+		}
+
 		config, err := sergeant.LoadConfig(path)
 		if err != nil {
 			logrus.Fatal(err)
@@ -53,12 +58,13 @@ var rootCmd = &cobra.Command{
 
 		logrus.Infof("Loaded %d cards, %d completed. (%.2f%%)", len(set.Cards), completed, 100*float64(completed)/float64(len(set.Cards)))
 
-		server.Run(store)
+		server.Run(store, profile)
 	},
 }
 
 func init() {
 	rootCmd.PersistentFlags().String("config", "", "sergeant config, defaults to ~/.config/sergeant/config.yaml")
+	rootCmd.Flags().Bool("profile", false, "run profiling")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

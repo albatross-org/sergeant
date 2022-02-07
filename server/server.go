@@ -9,12 +9,12 @@ var router *gin.Engine
 var store *sergeant.Store
 
 // Run starts the server.
-func Run(s *sergeant.Store) {
+func Run(s *sergeant.Store, profile bool) {
 	router = gin.Default()
 	store = s
 
 	initMiddleware()
-	initRoutes()
+	initRoutes(profile)
 
 	router.Run()
 }
