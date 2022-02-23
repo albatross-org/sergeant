@@ -176,7 +176,6 @@ func fastCreateCard(store *albatross.Store, path string, tags []string, question
 		}
 	}
 
-	fmt.Println(absolutePath)
 
 	err = ioutil.WriteFile(filepath.Join(absolutePath, "entry.md"), []byte(content), 0644)
 	if err != nil {

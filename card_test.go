@@ -31,22 +31,26 @@ func TestCardFromEntryValid(t *testing.T) {
 							{
 								"date": "2021-02-16 10:18",
 								"time": "7m10s",
+								"user": "",
 							},
 						},
 						"minor": {
 							{
 								"date": "2021-02-16 10:18",
 								"time": "5m51s",
+								"user": "",
 							},
 						},
 						"major": {
 							{
 								"date": "2021-02-16 10:18",
 								"time": "5m53s",
+								"user": "",
 							},
 							{
 								"date": "2021-02-16 10:18",
 								"time": "5m53s",
+								"user": "",
 							},
 						},
 					},
@@ -544,7 +548,7 @@ func TestCardFromEntryInvalid(t *testing.T) {
 				},
 				Contents: "Some additional notes here.",
 			},
-			err:  "couldn't parse 'completions' fild in card entry metadata",
+			err:  "couldn't parse 'completions' completions in card entry metadata",
 			name: "InvalidCompletionsMetadata",
 		},
 		{

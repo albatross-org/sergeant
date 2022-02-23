@@ -214,14 +214,20 @@ func cardFromEntry(entry *entries.Entry) (*Card, error) {
 
 	// Get the completions.
 	// This is a map of completion types ("perfect", "minor", "major") to lists of completions ("date", "time").
+	var completionsMap map[string][]map[string]string
+	var err error
+
 	completionsMapInterface, ok := entry.Metadata["completions"].(map[interface{}]interface{})
 	if !ok {
-		return nil, fmt.Errorf("couldn't parse 'completions' completions in card entry metadata")
-	}
-
-	completionsMap, err := completionsMapInterfaceToTypedMap(completionsMapInterface)
-	if err != nil {
-		return nil, err
+		completionsMap, ok = entry.Metadata["completions"].(map[string][]map[string]string)
+		if !ok {
+			return nil, fmt.Errorf("couldn't parse 'completions' completions in card entry metadata")
+		}
+	} else {
+		completionsMap, err = completionsMapInterfaceToTypedMap(completionsMapInterface)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	completionsPerfect, completionsMinor, completionsMajor, err := completionsMapToStruct(completionsMap)
