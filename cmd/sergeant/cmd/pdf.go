@@ -116,40 +116,64 @@ func generatePDFSource(questions []*sergeant.Card, user, viewName string) string
 	doc.WriteString(fmt.Sprintf(`\documentclass[a4paper]{report}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
+\usepackage{url}
+\pagenumbering{gobble}
 
 \title{\huge Sergeant Questions}
-\author{For %q (%s)}
+\author{For %s (%s)}
 \date{%s}
 \setlength{\parindent}{0pt}
 \begin{document}
 \maketitle
 \tableofcontents
-\newpage`, user, viewName, time.Now().Format("January 2nd, 2006")))
+\newpage`, user, "``"+viewName+"\"", time.Now().Format("January 2nd, 2006")))
 
 	for i, question := range questions {
 		doc.WriteString(fmt.Sprintf(`\section*{Question (%d)}
-\subsection{Question}
 \noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
 
-Start:
+\smallskip
+\huge Start:
 
-End: 
+\medskip
+\large ID: \texttt{%s}
 
-ID: \texttt{%s}
-
+Path: \path{%s}
 
 \noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+
+\medskip
+
+\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{%s}
+
+\newpage\phantom{A}
+\newpage\phantom{A}
+\newpage\phantom{A}
+
+\section*{Answer (%d)}
+\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+
+\smallskip
+\huge End:
+
+\medskip
+\large ID: \texttt{%s}
+
+Path: \path{%s}
+
+\begin{itemize}
+    \item Perfect
+    \item Major
+    \item Minor
+\end{itemize}
+
+\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+
+\medskip
 
 \includegraphics[width=\columnwidth]{%s}
 
-\newpage\phantom{A}
-\newpage\phantom{A}
-\newpage\phantom{A}
-
-\subsection{Answer}
-
-\includegraphics[width=\columnwidth]{%s}
-\newpage`, i+1, question.ID, question.QuestionPath, question.AnswerPath))
+\newpage`, i+1, question.ID, question.Path, question.QuestionPath, i+1, question.ID, question.Path, question.AnswerPath))
 	}
 
 	doc.WriteString(`\end{document}`)
