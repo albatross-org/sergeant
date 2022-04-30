@@ -14,32 +14,14 @@ import (
 // pdfCmd represents the 'pdf' command.
 var pdfCmd = &cobra.Command{
 	Use:   "pdf --set-name [set name] -n [number of questions]",
-	Short: "Add a card",
-	Long: `Add lets you add a card to the database of questions.
+	Short: "Generate a PDF containing questions",
+	Long: `pdf lets you generate a PDF containing questions from a specific set.
 	
 For example:
 
-	$ sergeant add --path 'further-maths/core-pure-1/chapter-1-complex-numbers' --question 'question.png' --answer 'answer.png'
-	# Or, using the short versions of the flags:
-	$ sergeant add -p 'further-maths/core-pure-1/chapter-1-complex-numbers' -q 'question.png' -a 'answer.png'
-
-You can also add tags:
-
-	$ sergeant add \
-		-p 'further-maths/core-pure-1/chapter-1-complex-numbers' \
-		-q 'question.png' \
-		-a 'answer.png' \
-		-t @?school -t @?further-maths 
-
-This is pretty longwinded and slow to use manually. If you want to scan in lots of questions very quickly, it's much easier to use
-the 'screenshot' command:
-
-	$ sergeant screenshot --path 'further-maths/core-pure-1/chapter-1-complex-numbers/ex1a'
-	# Listens for keyboard "Q" (question), "A" (answer), "D" (done) and "C" (cancel)
-
-For more information, see:
-
-	$ sergeant screenshot --help
+	$ sergeant pdf --set "school" --user "ben" --num 10 --view "bayesian" | pdflatex -jobname "PDF Questions $(date +%Y-%m-%d)"
+	# or, using the shorter version of flags
+	$ sergeant pdf -s "differentiation" -u "olly" -n 10 -v "random" | pdflatex -jobname "PDF Questions $(date +%Y-%m-%d)"
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -116,46 +98,69 @@ func generatePDFSource(questions []*sergeant.Card, user, viewName string) string
 	doc.WriteString(fmt.Sprintf(`\documentclass[a4paper]{report}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
+\usepackage{url}
+\pagenumbering{gobble}
 
 \title{\huge Sergeant Questions}
-\author{For %q (%s)}
+\author{For %s (%s)}
 \date{%s}
 \setlength{\parindent}{0pt}
 \begin{document}
 \maketitle
 \tableofcontents
-\newpage`, user, viewName, time.Now().Format("January 2nd, 2006")))
+\newpage`, user, "``"+viewName+"\"", time.Now().Format("January 2nd, 2006")))
 
 	for i, question := range questions {
 		doc.WriteString(fmt.Sprintf(`\section*{Question (%d)}
-\subsection{Question}
 \noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
 
-Start:
+\smallskip
+\huge Start:
 
-End: 
+\medskip
+\large ID: \texttt{%s}
 
-ID: \texttt{%s}
-
+Path: \path{%s}
 
 \noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
 
-\includegraphics[width=\columnwidth]{%s}
+\medskip
+
+\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{%s}
 
 \newpage\phantom{A}
 \newpage\phantom{A}
 \newpage\phantom{A}
 
-\subsection{Answer}
+\section*{Answer (%d)}
+\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
 
-\includegraphics[width=\columnwidth]{%s}
-\newpage`, i+1, question.ID, question.QuestionPath, question.AnswerPath))
+\smallskip
+\huge End:
+
+\medskip
+\large ID: \texttt{%s}
+
+Path: \path{%s}
+
+\begin{itemize}
+    \item Perfect
+    \item Major
+    \item Minor
+\end{itemize}
+
+\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+
+\medskip
+
+\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{%s}
+
+\newpage`, i+1, question.ID, question.Path, question.QuestionPath, i+1, question.ID, question.Path, question.AnswerPath))
 	}
 
 	doc.WriteString(`\end{document}`)
 
 	return doc.String()
-
 }
 
 func init() {
