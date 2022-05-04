@@ -11,7 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Card is the basic unit of the program. It's an abstraction over an Albatross entry and represents a question-answer pair.
+// Card is the basic unit of the program. It's represents a question-answer pair with user-evaluated completions.
 type Card struct {
 	ID   string
 	Path string

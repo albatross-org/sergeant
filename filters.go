@@ -34,6 +34,13 @@ func FilterAND(filters ...Filter) Filter {
 	}
 }
 
+// FilterNOT reverses a filter.
+func FilterNOT(filter Filter) Filter {
+	return func(card *Card) bool {
+		return !filter(card)
+	}
+}
+
 // FilterPaths returns a filter that only allows cards who's path begins with the paths specified.
 // This is an OR operation -- if any of the paths given match, then the card is allowed.
 func FilterPaths(paths ...string) Filter {
