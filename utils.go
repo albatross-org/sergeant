@@ -38,6 +38,7 @@ func encodeAsDataURI(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer f.Close()
 
 	reader := bufio.NewReader(f)
 	content, err := ioutil.ReadAll(reader)
